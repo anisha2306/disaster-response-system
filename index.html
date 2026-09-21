@@ -15,7 +15,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
     body { font-family: 'Inter', sans-serif; }
     .mono { font-family: 'JetBrains Mono', monospace; }
-    .map-box { height: 100%; min-height: 480px; width: 100%; z-index: 10; border-radius: 0.75rem; }
+    #shared-map { height: 100%; min-height: 480px; width: 100%; z-index: 10; border-radius: 0.75rem; }
     .pulse-dot {
       animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
@@ -135,7 +135,7 @@
           </span>
           <h2 class="text-xl font-bold text-slate-900 mt-2">Submit Imminent Hazard / SOS Assistance Request</h2>
           <p class="text-xs text-slate-500 mt-1 max-w-2xl">
-            Zero-friction reporting: Type your location description or tap "Detect My GPS Location" below. Coordinates are captured automatically.
+            Type the incident details or tap "Detect My GPS Location". Coordinates are captured automatically.
           </p>
         </div>
         <div class="text-right">
@@ -152,10 +152,10 @@
             <span>Emergency Incident Report</span>
           </h3>
 
-          <form id="sos-form" onsubmit="submitIncident(event)" class="space-y-4 text-xs">
+          <div class="space-y-4 text-xs">
             <div>
               <label class="block text-slate-600 font-medium mb-1">Incident Headline / What happened? *</label>
-              <input type="text" id="inc-title" required placeholder="e.g. Flash Flood Trapped In Residential Zone" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-red-500 transition" />
+              <input type="text" id="inc-title" placeholder="e.g. Flash Flood Trapped In Residential Zone" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-red-500 transition" />
             </div>
 
             <div class="grid grid-cols-2 gap-3">
@@ -182,10 +182,10 @@
 
             <div>
               <label class="block text-slate-600 font-medium mb-1">Where is the incident? (Landmarks / Area) *</label>
-              <input type="text" id="inc-loc-name" required placeholder="e.g. Near Sector 4 Bridge, Riverbank Road, beside temple" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-red-500 transition" />
+              <input type="text" id="inc-loc-name" placeholder="e.g. Near Sector 4 Bridge, Riverbank Road" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-red-500 transition" />
             </div>
 
-            <!-- AUTOMATIC GPS DETECTION (NO LAT/LNG INPUT BOXES) -->
+            <!-- AUTOMATIC GPS DETECTION CHIP -->
             <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-2">
               <div class="flex items-center space-x-2">
                 <span class="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500 pulse-dot"></span>
@@ -197,7 +197,7 @@
               </button>
             </div>
 
-            <!-- HIDDEN COORDINATES (SENT TO BACKEND AUTOMATICALLY) -->
+            <!-- HIDDEN COORDINATES -->
             <input type="hidden" id="inc-lat" value="21.1938" />
             <input type="hidden" id="inc-lng" value="81.3509" />
 
@@ -217,14 +217,14 @@
               <textarea id="inc-desc" rows="3" placeholder="Describe water level, blocked roads, special assistance needed..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-red-500"></textarea>
             </div>
 
-            <button type="submit" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition uppercase tracking-wider text-xs flex items-center justify-center space-x-2 shadow-md hover:shadow-lg">
+            <button type="button" id="btn-submit-ticket" onclick="submitIncident()" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition uppercase tracking-wider text-xs flex items-center justify-center space-x-2 shadow-md hover:shadow-lg">
               <i class="fa-solid fa-paper-plane"></i>
-              <span>Transmit Emergency Ticket</span>
+              <span id="btn-submit-text">Transmit Emergency Ticket</span>
             </button>
-          </form>
+          </div>
         </div>
 
-        <!-- GIS LEAFLET MAP -->
+        <!-- GIS LEAFLET MAP WRAPPER (CITIZEN VIEW) -->
         <div class="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-4 flex flex-col shadow-sm">
           <div class="flex items-center justify-between mb-3 px-1">
             <div class="flex items-center space-x-2">
@@ -233,16 +233,15 @@
             </div>
             <span class="text-[11px] mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">Interactive Leaflet.js</span>
           </div>
-          <div class="flex-1 rounded-xl overflow-hidden border border-slate-200">
-            <div id="map-citizen" class="map-box"></div>
+          <div class="flex-1 rounded-xl overflow-hidden border border-slate-200" id="map-parent-citizen">
+            <div id="shared-map"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 2. FIELD RESPONDER VIEW (ADVANCED MOBILE TERMINAL) -->
+    <!-- 2. FIELD RESPONDER VIEW -->
     <div id="view-responder" class="space-y-6" style="display: none;">
-      <!-- RESPONDER BANNER & TACTICAL STATUS BAR -->
       <div class="bg-white border border-slate-200 p-5 rounded-2xl flex items-center justify-between flex-wrap gap-4 shadow-sm">
         <div>
           <span class="text-xs text-amber-700 font-semibold bg-amber-50 px-2.5 py-0.5 rounded border border-amber-200 uppercase tracking-wide">
@@ -251,7 +250,6 @@
           <h2 class="text-xl font-bold text-slate-900 mt-1">Ground Unit Operational Interface</h2>
           <p class="text-xs text-slate-500 mt-0.5">Assigned to: <strong class="text-slate-800 mono">NDRF BATTALION UNIT-704</strong> | Channel: <strong class="text-amber-600 mono">TAC-RADIO 4</strong></p>
         </div>
-        <!-- STATUS SELECTOR -->
         <div class="flex items-center space-x-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 text-xs mono">
           <span class="text-slate-500 font-semibold pl-2">UNIT STATUS:</span>
           <button onclick="setUnitStatus('AVAILABLE')" id="st-available" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold transition">AVAILABLE</button>
@@ -260,7 +258,6 @@
         </div>
       </div>
 
-      <!-- RESPONDER METRICS -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
           <div class="text-xs text-slate-500 mono font-semibold">ASSIGNED SECTOR TICKETS</div>
@@ -268,7 +265,7 @@
         </div>
         <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
           <div class="text-xs text-slate-500 mono font-semibold">RESCUED / EVACUATED TODAY</div>
-          <div class="text-2xl font-bold text-emerald-600 mono mt-1">14 Persons</div>
+          <div id="resp-rescued-count" class="text-2xl font-bold text-emerald-600 mono mt-1">14 Persons</div>
         </div>
         <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
           <div class="text-xs text-slate-500 mono font-semibold">MEDICAL TRAUMA KITS READY</div>
@@ -276,7 +273,6 @@
         </div>
       </div>
 
-      <!-- ACTIVE TICKETS INJECTION GRID -->
       <div class="space-y-3">
         <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider flex items-center space-x-2">
           <i class="fa-solid fa-list-check text-amber-600"></i>
@@ -285,7 +281,6 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="responder-cards-container"></div>
       </div>
 
-      <!-- FIELD SITREP TRANSMITTER -->
       <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
         <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider flex items-center space-x-2">
           <i class="fa-solid fa-bullhorn text-indigo-600"></i>
@@ -301,7 +296,7 @@
             <input type="text" id="sitrep-notes" placeholder="e.g. Submerged electric pole isolated. Safe corridor open." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2" />
           </div>
           <div class="flex items-end">
-            <button onclick="alert('SITREP Logged: Central Dispatch & EOC updated with telemetry.')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition">
+            <button onclick="transmitSitrep()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition shadow-sm">
               Transmit SITREP
             </button>
           </div>
@@ -309,9 +304,8 @@
       </div>
     </div>
 
-    <!-- 3. DISPATCHER VIEW (CAD TRIAGE & FLEET CONTROLLER) -->
+    <!-- 3. DISPATCHER VIEW -->
     <div id="view-dispatcher" class="space-y-6" style="display: none;">
-      <!-- DISPATCH BANNER -->
       <div class="bg-white border border-slate-200 p-5 rounded-2xl flex items-center justify-between flex-wrap gap-4 shadow-sm">
         <div>
           <span class="text-xs text-blue-700 font-semibold bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200 uppercase tracking-wide">
@@ -327,7 +321,6 @@
         </div>
       </div>
 
-      <!-- DISPATCH QUEUE FILTERS & SEARCH -->
       <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex items-center justify-between flex-wrap gap-3 text-xs">
         <div class="flex items-center space-x-2">
           <span class="text-slate-500 font-semibold uppercase text-[11px]">Filter Queue:</span>
@@ -341,7 +334,6 @@
         </div>
       </div>
 
-      <!-- ACTIVE DISPATCH MANIFEST TABLE -->
       <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
         <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
           <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider">Inbound Incident Manifest</h3>
@@ -365,9 +357,7 @@
         </div>
       </div>
 
-      <!-- RADIO DISPATCH BROADCAST & FLEET POOL -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- RADIO BROADCASTER -->
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
           <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider flex items-center space-x-2">
             <i class="fa-solid fa-tower-broadcast text-blue-600"></i>
@@ -383,7 +373,6 @@
           </div>
         </div>
 
-        <!-- FLEET POOL TRACKER -->
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
           <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider flex items-center space-x-2">
             <i class="fa-solid fa-truck-ramp-box text-emerald-600"></i>
@@ -407,9 +396,8 @@
       </div>
     </div>
 
-    <!-- 4. MASTER ADMIN VIEW (NATIONAL EOC STRATEGIC COMMAND) -->
+    <!-- 4. MASTER ADMIN VIEW -->
     <div id="view-commander" class="space-y-6" style="display: none;">
-      <!-- EXECUTIVE BANNER -->
       <div class="bg-white border border-slate-200 p-5 rounded-2xl flex items-center justify-between flex-wrap gap-4 shadow-sm">
         <div>
           <span class="text-xs text-indigo-700 font-semibold bg-indigo-50 px-2.5 py-0.5 rounded border border-indigo-200 uppercase tracking-wide">
@@ -426,7 +414,6 @@
         </div>
       </div>
 
-      <!-- MASTER KPI CARDS -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
           <div class="flex items-center justify-between text-slate-400 mb-1">
@@ -464,7 +451,6 @@
 
       <!-- ADMIN GEOSPATIAL COMMAND GRID & ANALYTICAL CHARTS -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- ADMIN STRATEGIC MAP -->
         <div class="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-4 flex flex-col shadow-sm">
           <div class="flex items-center justify-between mb-3 px-1">
             <div class="flex items-center space-x-2">
@@ -473,12 +459,11 @@
             </div>
             <span class="text-[11px] mono text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded">All Layers Active</span>
           </div>
-          <div class="flex-1 rounded-xl overflow-hidden border border-slate-200">
-            <div id="map-admin" class="map-box" style="min-height: 420px;"></div>
+          <div class="flex-1 rounded-xl overflow-hidden border border-slate-200" id="map-parent-admin">
+            <!-- Shared map relocates here when Admin is open -->
           </div>
         </div>
 
-        <!-- CHARTS RIGHT COLUMN -->
         <div class="lg:col-span-5 space-y-6">
           <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
             <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider mb-2">Severity Tier Breakdown</h3>
@@ -571,7 +556,7 @@
         </div>
       </div>
 
-      <!-- MASTER AUDIT LOG TABLE & INCIDENT OVERRIDE MANIFEST -->
+      <!-- MASTER AUDIT LOG TABLE -->
       <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
         <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
           <div>
@@ -623,10 +608,9 @@
       commander: false
     };
 
-    let mapCitizen = null;
-    let mapAdmin = null;
-    let mapCitizenMarkers = [];
-    let mapAdminMarkers = [];
+    // Single unified map instance prevents "Map container already initialized" crashes
+    let sharedMap = null;
+    let mapMarkers = [];
 
     let incidentStore = [
       {
@@ -677,28 +661,34 @@
     let typeChartObj = null;
 
     window.addEventListener("DOMContentLoaded", () => {
-      initCitizenMap();
-      activateRole('citizen');
-      updateAllViews(incidentStore);
-      fetchIncidents();
-      setInterval(fetchIncidents, 20000);
+      try {
+        initUnifiedMap();
+        activateRole('citizen');
+        updateAllViews(incidentStore);
+        fetchIncidents();
+        setInterval(fetchIncidents, 20000);
+      } catch (e) {
+        console.error("Initialization check:", e);
+      }
     });
 
-    function initCitizenMap() {
-      mapCitizen = L.map('map-citizen').setView([21.1938, 81.3509], 12);
+    function initUnifiedMap() {
+      const mapContainer = document.getElementById('shared-map');
+      if (!mapContainer || sharedMap) return;
+
+      sharedMap = L.map('shared-map').setView([21.1938, 81.3509], 12);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap &copy; CARTO',
         maxZoom: 19
-      }).addTo(mapCitizen);
+      }).addTo(sharedMap);
 
-      mapCitizen.on('click', function(e) {
+      sharedMap.on('click', function(e) {
         document.getElementById('inc-lat').value = e.latlng.lat.toFixed(4);
         document.getElementById('inc-lng').value = e.latlng.lng.toFixed(4);
-        document.getElementById('gps-status-text').innerText = `Location Pinned on Map: (${e.latlng.lat.toFixed(3)}, ${e.latlng.lng.toFixed(3)})`;
+        document.getElementById('gps-status-text').innerText = `Location Pinned: (${e.latlng.lat.toFixed(3)}, ${e.latlng.lng.toFixed(3)})`;
       });
     }
 
-    // AUTO GEOLOCATION DETECTION
     function detectLiveGPS() {
       const gpsLabel = document.getElementById('gps-status-text');
       if (navigator.geolocation) {
@@ -710,29 +700,20 @@
             document.getElementById('inc-lat').value = lat.toFixed(4);
             document.getElementById('inc-lng').value = lng.toFixed(4);
             gpsLabel.innerText = `GPS Acquired: (${lat.toFixed(3)}, ${lng.toFixed(3)})`;
-            if (mapCitizen) {
-              mapCitizen.setView([lat, lng], 14);
+            if (sharedMap) {
+              sharedMap.setView([lat, lng], 14);
               L.circleMarker([lat, lng], { radius: 9, fillColor: '#2563eb', color: '#fff', weight: 2, fillOpacity: 0.9 })
-                .addTo(mapCitizen)
-                .bindPopup("Your Detected Location").openPopup();
+                .addTo(sharedMap)
+                .bindPopup("Your Location").openPopup();
             }
           },
-          (err) => {
-            gpsLabel.innerText = "GPS Permission denied. Defaulting to regional zone.";
+          () => {
+            gpsLabel.innerText = "GPS permission denied. Regional lock active.";
           }
         );
       } else {
-        gpsLabel.innerText = "Geolocation not supported by browser.";
+        gpsLabel.innerText = "Geolocation not supported.";
       }
-    }
-
-    function initAdminMap() {
-      if (mapAdmin) return;
-      mapAdmin = L.map('map-admin').setView([21.1938, 81.3509], 12);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
-        maxZoom: 19
-      }).addTo(mapAdmin);
     }
 
     function switchRole(role) {
@@ -822,23 +803,337 @@
         authLabel.innerText = loggedInOfficer || `BADGE: ${role.toUpperCase()}`;
       }
 
-      if (role === 'citizen' && mapCitizen) {
-        setTimeout(() => mapCitizen.invalidateSize(), 150);
+      // Smoothly relocate the single map instance to avoid leaflet duplication crashes
+      const mapEl = document.getElementById('shared-map');
+      if (role === 'citizen') {
+        const citizenParent = document.getElementById('map-parent-citizen');
+        if (citizenParent && mapEl.parentNode !== citizenParent) {
+          citizenParent.appendChild(mapEl);
+        }
+      } else if (role === 'commander') {
+        const adminParent = document.getElementById('map-parent-admin');
+        if (adminParent && mapEl.parentNode !== adminParent) {
+          adminParent.appendChild(mapEl);
+        }
       }
-      if (role === 'commander') {
-        setTimeout(() => {
-          initAdminMap();
-          mapAdmin.invalidateSize();
-          renderAdminMap(incidentStore);
-          renderCharts();
-        }, 100);
+
+      if (sharedMap) {
+        setTimeout(() => sharedMap.invalidateSize(), 100);
       }
-      if (role === 'responder') {
-        renderResponderCards();
+
+      updateAllViews(incidentStore);
+    }
+
+    // REAL-TIME ACTIONS (ESCALATE, CLOSE, DISPATCH, EN ROUTE, RESOLVE)
+    function escalateTicket(ticketId) {
+      const ticket = incidentStore.find(i => i.id === ticketId);
+      if (ticket) {
+        ticket.severity = "Critical";
+        ticket.status = "ESCALATED";
+        alert(`DIRECTIVE LOGGED: Ticket #${ticketId} escalated to PRIORITY-1 (Critical Emergency). All command dashboards updated.`);
+        updateAllViews(incidentStore);
       }
-      if (role === 'dispatcher') {
-        renderTable(incidentStore);
+    }
+
+    function closeTicket(ticketId) {
+      const idx = incidentStore.findIndex(i => i.id === ticketId);
+      if (idx !== -1) {
+        const closed = incidentStore.splice(idx, 1)[0];
+        alert(`DIRECTIVE EXECUTED: Ticket #${ticketId} (${closed.title}) closed and archived by Executive Authority.`);
+        updateAllViews(incidentStore);
       }
+    }
+
+    function dispatchUnit(ticketId) {
+      const ticket = incidentStore.find(i => i.id === ticketId);
+      if (ticket) {
+        ticket.status = "DISPATCHED";
+        alert(`CAD Dispatch Action: Assigned unit dispatched to Ticket #${ticketId}. Responders alerted.`);
+        updateAllViews(incidentStore);
+      }
+    }
+
+    function setIncidentStatus(ticketId, newStatus) {
+      const ticket = incidentStore.find(i => i.id === ticketId);
+      if (ticket) {
+        ticket.status = newStatus;
+        if (newStatus === 'RESOLVED') {
+          alert(`Field Unit Update: Ticket #${ticketId} marked as RESOLVED on scene.`);
+        } else {
+          alert(`Field Unit Update: Unit status changed to ${newStatus} for Ticket #${ticketId}.`);
+        }
+        updateAllViews(incidentStore);
+      }
+    }
+
+    function assignUnit(ticketId, unitName) {
+      const ticket = incidentStore.find(i => i.id === ticketId);
+      if (ticket) {
+        ticket.assigned_unit = unitName;
+        ticket.status = "DISPATCHED";
+        alert(`CAD Routing: Ticket #${ticketId} re-assigned to ${unitName}`);
+        updateAllViews(incidentStore);
+      }
+    }
+
+    function transmitSitrep() {
+      const count = parseInt(document.getElementById('sitrep-rescued').value) || 0;
+      const notes = document.getElementById('sitrep-notes').value.trim();
+      const currentRescuedEl = document.getElementById('resp-rescued-count');
+      const prev = parseInt(currentRescuedEl.innerText) || 14;
+      currentRescuedEl.innerText = `${prev + count} Persons`;
+      alert(`SITREP Logged & Broadcasted: +${count} casualties extricated. Dispatch logs updated.`);
+      document.getElementById('sitrep-notes').value = "";
+    }
+
+    // SUBMIT TICKET WITH RELIABLE CLICK HANDLER
+    async function submitIncident() {
+      const titleInput = document.getElementById('inc-title');
+      const locInput = document.getElementById('inc-loc-name');
+
+      if (!titleInput.value.trim()) {
+        alert("Please provide a brief headline or what happened.");
+        titleInput.focus();
+        return;
+      }
+      if (!locInput.value.trim()) {
+        alert("Please describe the landmark or location of the incident.");
+        locInput.focus();
+        return;
+      }
+
+      const submitBtn = document.getElementById('btn-submit-ticket');
+      const submitText = document.getElementById('btn-submit-text');
+      submitBtn.disabled = true;
+      submitText.innerText = "Transmitting to CAD Queue...";
+
+      const latVal = parseFloat(document.getElementById('inc-lat').value) || 21.1938;
+      const lngVal = parseFloat(document.getElementById('inc-lng').value) || 81.3509;
+
+      const payload = {
+        title: titleInput.value.trim(),
+        disaster_type: document.getElementById('inc-type').value,
+        severity: document.getElementById('inc-severity').value,
+        location_name: locInput.value.trim(),
+        latitude: latVal,
+        longitude: lngVal,
+        trapped_count: parseInt(document.getElementById('inc-trapped').value) || 0,
+        injured_count: parseInt(document.getElementById('inc-injured').value) || 0,
+        description: document.getElementById('inc-desc').value.trim() || "Immediate assistance requested.",
+        assigned_unit: "Unassigned",
+        status: "PENDING"
+      };
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        const res = await fetch(`${API_BASE_URL}/incidents`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) throw new Error("API error");
+        const savedData = await res.json();
+        incidentStore.unshift(savedData.id ? savedData : { ...payload, id: incidentStore.length + 101 });
+        alert("Emergency incident ticket successfully transmitted to CAD queue!");
+      } catch (err) {
+        console.warn("Logging locally (Backend sleeping or syncing):", err);
+        const localTicket = { ...payload, id: Math.floor(Math.random() * 800) + 110 };
+        incidentStore.unshift(localTicket);
+        alert(`Incident logged and queued (#TICKET-${localTicket.id}). Dispatch queue updated.`);
+      } finally {
+        updateAllViews(incidentStore);
+        titleInput.value = "";
+        locInput.value = "";
+        document.getElementById('inc-desc').value = "";
+        submitBtn.disabled = false;
+        submitText.innerText = "Transmit Emergency Ticket";
+      }
+    }
+
+    async function fetchIncidents() {
+      try {
+        const res = await fetch(`${API_BASE_URL}/incidents`);
+        if (!res.ok) throw new Error("API unreachable");
+        const data = await res.json();
+        if (data && data.length > 0) {
+          incidentStore = data;
+        }
+        updateAllViews(incidentStore);
+        document.getElementById('api-status-text').innerText = "FastAPI Online";
+      } catch (err) {
+        document.getElementById('api-status-text').innerText = "FastAPI Syncing";
+        updateAllViews(incidentStore);
+      }
+    }
+
+    function updateAllViews(data) {
+      renderMapMarkers(data);
+      renderTable(data);
+      renderAdminTable(data);
+      updateKPIs(data);
+      renderResponderCards();
+      if (currentRole === 'commander') {
+        renderCharts();
+      }
+    }
+
+    function renderMapMarkers(incidents) {
+      if (!sharedMap) return;
+      mapMarkers.forEach(m => sharedMap.removeLayer(m));
+      mapMarkers = [];
+
+      incidents.forEach(inc => {
+        const marker = L.circleMarker([inc.latitude, inc.longitude], {
+          radius: inc.severity === 'Critical' ? 13 : 9,
+          fillColor: inc.severity === 'Critical' ? '#dc2626' : '#f59e0b',
+          color: '#ffffff',
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.85
+        }).addTo(sharedMap);
+
+        marker.bindPopup(`
+          <div class="p-1 text-slate-800">
+            <div class="font-bold text-sm">${inc.title}</div>
+            <div class="text-xs text-indigo-600 font-semibold mt-0.5">TICKET #${inc.id} &bull; ${inc.disaster_type} (${inc.severity})</div>
+            <div class="text-xs text-slate-600 mt-1">${inc.location_name}</div>
+            <div class="text-xs text-red-600 font-bold mt-1">Trapped: ${inc.trapped_count} | Injured: ${inc.injured_count}</div>
+            <div class="text-[10px] text-slate-500 mt-1 mono">Status: ${inc.status || 'PENDING'}</div>
+          </div>
+        `);
+        mapMarkers.push(marker);
+      });
+    }
+
+    function renderTable(incidents) {
+      const tbody = document.getElementById('incidents-table-body');
+      document.getElementById('incident-count-badge').innerText = `${incidents.length} incidents logged`;
+      if (!incidents.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400 mono">No active emergency incidents logged in queue.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = incidents.map(inc => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-3.5 mono text-slate-500 font-medium">#${inc.id}</td>
+          <td class="p-3.5 font-semibold text-slate-900">${inc.disaster_type}</td>
+          <td class="p-3.5">
+            <div class="font-medium text-slate-800">${inc.title}</div>
+            <div class="text-[11px] text-slate-500 mono">${inc.location_name}</div>
+          </td>
+          <td class="p-3.5">
+            <span class="px-2 py-0.5 rounded text-[11px] font-bold ${
+              inc.severity === 'Critical' ? 'bg-red-50 text-red-700 border border-red-200' :
+              inc.severity === 'High' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+              'bg-blue-50 text-blue-700 border border-blue-200'
+            }">${inc.severity}</span>
+          </td>
+          <td class="p-3.5 mono">
+            <span class="text-amber-700 font-semibold">${inc.trapped_count} trapped</span>, 
+            <span class="text-red-700 font-semibold">${inc.injured_count} inj</span>
+          </td>
+          <td class="p-3.5">
+            <select onchange="assignUnit(${inc.id}, this.value)" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-[11px] font-mono">
+              <option ${inc.assigned_unit === 'NDRF Team Alpha' ? 'selected' : ''}>NDRF Team Alpha</option>
+              <option ${inc.assigned_unit === 'City Fire Tender 03' ? 'selected' : ''}>City Fire Tender 03</option>
+              <option ${inc.assigned_unit === 'SDRF Water Squad 01' ? 'selected' : ''}>SDRF Water Squad 01</option>
+              <option ${inc.assigned_unit === 'ALS Ambulance #12' ? 'selected' : ''}>ALS Ambulance #12</option>
+            </select>
+          </td>
+          <td class="p-3.5 text-right">
+            <button onclick="dispatchUnit(${inc.id})" class="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold transition shadow-sm">
+              Dispatch
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderAdminTable(incidents) {
+      const tbody = document.getElementById('admin-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = incidents.map(inc => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-3.5 mono text-slate-600 font-medium">#LOG-${inc.id}</td>
+          <td class="p-3.5 font-semibold text-slate-900">${inc.disaster_type}</td>
+          <td class="p-3.5">
+            <div class="font-medium text-slate-800">${inc.title}</div>
+            <div class="text-[11px] text-slate-500 mono">${inc.location_name}</div>
+          </td>
+          <td class="p-3.5">
+            <span class="px-2 py-0.5 rounded text-[11px] font-bold ${
+              inc.severity === 'Critical' ? 'bg-red-50 text-red-700 border border-red-200' :
+              inc.severity === 'High' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+              'bg-blue-50 text-blue-700 border border-blue-200'
+            }">${inc.severity}</span>
+          </td>
+          <td class="p-3.5 mono">
+            <span class="text-amber-700 font-bold">${inc.trapped_count} Trapped</span> | 
+            <span class="text-red-700 font-bold">${inc.injured_count} Injured</span>
+          </td>
+          <td class="p-3.5 text-right space-x-1.5">
+            <button onclick="escalateTicket(${inc.id})" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-semibold transition">
+              Escalate
+            </button>
+            <button onclick="closeTicket(${inc.id})" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition">
+              Close
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderResponderCards() {
+      const container = document.getElementById('responder-cards-container');
+      const badgeCount = document.getElementById('resp-assigned-count');
+      if (badgeCount) badgeCount.innerText = incidentStore.length;
+
+      if (!incidentStore.length) {
+        container.innerHTML = `
+          <div class="col-span-3 text-center text-slate-400 py-16 bg-white border border-slate-200 rounded-2xl mono shadow-sm">
+            <i class="fa-solid fa-clipboard-check text-2xl mb-2 text-slate-400 block"></i>
+            No active field emergency tickets assigned to this unit.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = incidentStore.map(inc => `
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:shadow-md transition shadow-sm">
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded mono ${
+                inc.severity === 'Critical' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+              }">${inc.severity} ALERT</span>
+              <span class="text-xs text-slate-500 mono font-medium">#TICKET-${inc.id}</span>
+            </div>
+            <h4 class="font-bold text-slate-900 text-base">${inc.title}</h4>
+            <p class="text-xs text-slate-500 mt-1 flex items-center">
+              <i class="fa-solid fa-location-dot mr-1.5 text-red-600"></i> ${inc.location_name}
+            </p>
+            <div class="mt-3 text-xs mono text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex justify-between">
+              <span>Trapped: <strong class="text-amber-700">${inc.trapped_count}</strong></span>
+              <span>Injured: <strong class="text-red-700">${inc.injured_count}</strong></span>
+              <span>Status: <strong class="text-indigo-600">${inc.status || 'PENDING'}</strong></span>
+            </div>
+          </div>
+          <div class="flex space-x-2 pt-2">
+            <button onclick="setIncidentStatus(${inc.id}, 'EN_ROUTE')" class="w-1/2 py-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-lg text-xs transition flex items-center justify-center space-x-1.5 shadow-sm">
+              <i class="fa-solid fa-truck-fast"></i>
+              <span>En Route</span>
+            </button>
+            <button onclick="setIncidentStatus(${inc.id}, 'RESOLVED')" class="w-1/2 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-semibold rounded-lg text-xs transition flex items-center justify-center space-x-1.5 shadow-sm">
+              <i class="fa-solid fa-check"></i>
+              <span>Resolve</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
     }
 
     function setUnitStatus(status) {
@@ -923,260 +1218,6 @@
       alert(`Simulated Drill Injected: Ticket #${newTicket.id} (${newTicket.title}) added to all operational queues.`);
     }
 
-    async function submitIncident(e) {
-      e.preventDefault();
-      const payload = {
-        title: document.getElementById('inc-title').value,
-        disaster_type: document.getElementById('inc-type').value,
-        severity: document.getElementById('inc-severity').value,
-        location_name: document.getElementById('inc-loc-name').value,
-        latitude: parseFloat(document.getElementById('inc-lat').value) || 21.1938,
-        longitude: parseFloat(document.getElementById('inc-lng').value) || 81.3509,
-        trapped_count: parseInt(document.getElementById('inc-trapped').value) || 0,
-        injured_count: parseInt(document.getElementById('inc-injured').value) || 0,
-        description: document.getElementById('inc-desc').value,
-        assigned_unit: "Unassigned",
-        status: "PENDING"
-      };
-
-      try {
-        const res = await fetch(`${API_BASE_URL}/incidents`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) throw new Error("API write rejected");
-        alert("Emergency incident transmitted to official dispatch queue.");
-        document.getElementById('sos-form').reset();
-        fetchIncidents();
-      } catch (err) {
-        const fakeTicket = { ...payload, id: incidentStore.length + 101 };
-        incidentStore.unshift(fakeTicket);
-        updateAllViews(incidentStore);
-        alert("Emergency incident recorded in active local queue (Backend connecting).");
-        document.getElementById('sos-form').reset();
-      }
-    }
-
-    async function fetchIncidents() {
-      try {
-        const res = await fetch(`${API_BASE_URL}/incidents`);
-        if (!res.ok) throw new Error("API unreachable");
-        const data = await res.json();
-        if (data && data.length > 0) {
-          incidentStore = data;
-        }
-        updateAllViews(incidentStore);
-        document.getElementById('api-status-text').innerText = "FastAPI Online";
-      } catch (err) {
-        console.warn("FastAPI fallback syncing:", err);
-        document.getElementById('api-status-text').innerText = "FastAPI Syncing";
-        updateAllViews(incidentStore);
-      }
-    }
-
-    function updateAllViews(data) {
-      renderCitizenMap(data);
-      renderAdminMap(data);
-      renderTable(data);
-      renderAdminTable(data);
-      updateKPIs(data);
-      renderResponderCards();
-      if (currentRole === 'commander') {
-        renderCharts();
-      }
-    }
-
-    function renderCitizenMap(incidents) {
-      if (!mapCitizen) return;
-      mapCitizenMarkers.forEach(m => mapCitizen.removeLayer(m));
-      mapCitizenMarkers = [];
-
-      incidents.forEach(inc => {
-        const marker = L.circleMarker([inc.latitude, inc.longitude], {
-          radius: inc.severity === 'Critical' ? 12 : 8,
-          fillColor: inc.severity === 'Critical' ? '#dc2626' : '#f59e0b',
-          color: '#ffffff',
-          weight: 2,
-          opacity: 1,
-          fillOpacity: 0.85
-        }).addTo(mapCitizen);
-
-        marker.bindPopup(`
-          <div class="p-1 text-slate-800">
-            <div class="font-bold">${inc.title}</div>
-            <div class="text-xs text-slate-600">${inc.disaster_type} &bull; ${inc.severity}</div>
-            <div class="text-xs text-red-600 font-semibold mt-1">Trapped: ${inc.trapped_count} | Injured: ${inc.injured_count}</div>
-          </div>
-        `);
-        mapCitizenMarkers.push(marker);
-      });
-    }
-
-    function renderAdminMap(incidents) {
-      if (!mapAdmin) return;
-      mapAdminMarkers.forEach(m => mapAdmin.removeLayer(m));
-      mapAdminMarkers = [];
-
-      incidents.forEach(inc => {
-        const marker = L.circleMarker([inc.latitude, inc.longitude], {
-          radius: inc.severity === 'Critical' ? 14 : 9,
-          fillColor: inc.severity === 'Critical' ? '#dc2626' : '#f59e0b',
-          color: '#ffffff',
-          weight: 2,
-          opacity: 1,
-          fillOpacity: 0.9
-        }).addTo(mapAdmin);
-
-        marker.bindPopup(`
-          <div class="p-1 text-slate-800">
-            <div class="font-bold text-sm">${inc.title}</div>
-            <div class="text-xs text-indigo-600 font-semibold">TICKET #${inc.id} &bull; ${inc.disaster_type}</div>
-            <div class="text-xs text-slate-600 mt-1">${inc.location_name}</div>
-            <div class="text-xs text-red-600 font-bold mt-1">Victims: ${inc.trapped_count} Trapped | ${inc.injured_count} Injured</div>
-          </div>
-        `);
-        mapAdminMarkers.push(marker);
-      });
-    }
-
-    function renderTable(incidents) {
-      const tbody = document.getElementById('incidents-table-body');
-      document.getElementById('incident-count-badge').innerText = `${incidents.length} incidents logged`;
-      if (!incidents.length) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400 mono">No active emergency incidents logged in queue.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = incidents.map(inc => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-3.5 mono text-slate-500 font-medium">#${inc.id}</td>
-          <td class="p-3.5 font-semibold text-slate-900">${inc.disaster_type}</td>
-          <td class="p-3.5">
-            <div class="font-medium text-slate-800">${inc.title}</div>
-            <div class="text-[11px] text-slate-500 mono">${inc.location_name}</div>
-          </td>
-          <td class="p-3.5">
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold ${
-              inc.severity === 'Critical' ? 'bg-red-50 text-red-700 border border-red-200' :
-              inc.severity === 'High' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-              'bg-blue-50 text-blue-700 border border-blue-200'
-            }">${inc.severity}</span>
-          </td>
-          <td class="p-3.5 mono">
-            <span class="text-amber-700 font-semibold">${inc.trapped_count} trapped</span>, 
-            <span class="text-red-700 font-semibold">${inc.injured_count} inj</span>
-          </td>
-          <td class="p-3.5">
-            <select onchange="assignUnit(${inc.id}, this.value)" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-[11px] font-mono">
-              <option ${inc.assigned_unit === 'NDRF Team Alpha' ? 'selected' : ''}>NDRF Team Alpha</option>
-              <option ${inc.assigned_unit === 'City Fire Tender 03' ? 'selected' : ''}>City Fire Tender 03</option>
-              <option ${inc.assigned_unit === 'SDRF Water Squad 01' ? 'selected' : ''}>SDRF Water Squad 01</option>
-              <option ${inc.assigned_unit === 'ALS Ambulance #12' ? 'selected' : ''}>ALS Ambulance #12</option>
-            </select>
-          </td>
-          <td class="p-3.5 text-right">
-            <button onclick="alert('Unit dispatched to Ticket #${inc.id}')" class="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold transition shadow-sm">
-              Dispatch
-            </button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function assignUnit(ticketId, unitName) {
-      const ticket = incidentStore.find(i => i.id === ticketId);
-      if (ticket) {
-        ticket.assigned_unit = unitName;
-        ticket.status = "DISPATCHED";
-        alert(`CAD Routing: Ticket #${ticketId} assigned to ${unitName}`);
-        renderResponderCards();
-      }
-    }
-
-    function renderAdminTable(incidents) {
-      const tbody = document.getElementById('admin-table-body');
-      if (!tbody) return;
-      tbody.innerHTML = incidents.map(inc => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-3.5 mono text-slate-600 font-medium">#LOG-${inc.id}</td>
-          <td class="p-3.5 font-semibold text-slate-900">${inc.disaster_type}</td>
-          <td class="p-3.5">
-            <div class="font-medium text-slate-800">${inc.title}</div>
-            <div class="text-[11px] text-slate-500 mono">${inc.location_name}</div>
-          </td>
-          <td class="p-3.5">
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold ${
-              inc.severity === 'Critical' ? 'bg-red-50 text-red-700 border border-red-200' :
-              inc.severity === 'High' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-              'bg-blue-50 text-blue-700 border border-blue-200'
-            }">${inc.severity}</span>
-          </td>
-          <td class="p-3.5 mono">
-            <span class="text-amber-700 font-bold">${inc.trapped_count} Trapped</span> | 
-            <span class="text-red-700 font-bold">${inc.injured_count} Injured</span>
-          </td>
-          <td class="p-3.5 text-right space-x-1.5">
-            <button onclick="alert('Director Override: Escalate Ticket #${inc.id} to National Disaster Response Corps (NDRF Priority-1)')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-semibold transition">
-              Escalate
-            </button>
-            <button onclick="alert('Directive: Ticket #${inc.id} marked closed by Command Authority.')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition">
-              Close
-            </button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function renderResponderCards() {
-      const container = document.getElementById('responder-cards-container');
-      const badgeCount = document.getElementById('resp-assigned-count');
-      if (badgeCount) badgeCount.innerText = incidentStore.length;
-
-      if (!incidentStore.length) {
-        container.innerHTML = `
-          <div class="col-span-3 text-center text-slate-400 py-16 bg-white border border-slate-200 rounded-2xl mono shadow-sm">
-            <i class="fa-solid fa-clipboard-check text-2xl mb-2 text-slate-400 block"></i>
-            No active field emergency tickets assigned to this unit.
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = incidentStore.map(inc => `
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:shadow-md transition shadow-sm">
-          <div>
-            <div class="flex justify-between items-center mb-2">
-              <span class="text-[11px] font-bold px-2 py-0.5 rounded mono ${
-                inc.severity === 'Critical' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
-              }">${inc.severity} ALERT</span>
-              <span class="text-xs text-slate-500 mono font-medium">#TICKET-${inc.id}</span>
-            </div>
-            <h4 class="font-bold text-slate-900 text-base">${inc.title}</h4>
-            <p class="text-xs text-slate-500 mt-1 flex items-center">
-              <i class="fa-solid fa-location-dot mr-1.5 text-red-600"></i> ${inc.location_name}
-            </p>
-            <div class="mt-3 text-xs mono text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex justify-between">
-              <span>Trapped: <strong class="text-amber-700">${inc.trapped_count}</strong></span>
-              <span>Injured: <strong class="text-red-700">${inc.injured_count}</strong></span>
-              <span>Unit: <strong class="text-indigo-600">${inc.assigned_unit || 'NDRF Alpha'}</strong></span>
-            </div>
-          </div>
-          <div class="flex space-x-2 pt-2">
-            <button onclick="alert('Unit #704 status acknowledged: EN ROUTE to Ticket #${inc.id}')" class="w-1/2 py-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-lg text-xs transition flex items-center justify-center space-x-1.5 shadow-sm">
-              <i class="fa-solid fa-truck-fast"></i>
-              <span>En Route</span>
-            </button>
-            <button onclick="alert('Ticket #${inc.id} marked as RESOLVED on scene.')" class="w-1/2 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-semibold rounded-lg text-xs transition flex items-center justify-center space-x-1.5 shadow-sm">
-              <i class="fa-solid fa-check"></i>
-              <span>Resolve</span>
-            </button>
-          </div>
-        </div>
-      `).join('');
-    }
-
     function updateKPIs(incidents) {
       document.getElementById('kpi-total').innerText = incidents.length;
       document.getElementById('kpi-critical').innerText = incidents.filter(i => i.severity === 'Critical').length;
@@ -1196,7 +1237,9 @@
         typeCounts[i.disaster_type] = (typeCounts[i.disaster_type] || 0) + 1;
       });
 
-      if (severityChartObj) severityChartObj.destroy();
+      if (severityChartObj) {
+        severityChartObj.destroy();
+      }
       const ctxSev = sevCanvas.getContext('2d');
       severityChartObj = new Chart(ctxSev, {
         type: 'doughnut',
@@ -1220,7 +1263,9 @@
         }
       });
 
-      if (typeChartObj) typeChartObj.destroy();
+      if (typeChartObj) {
+        typeChartObj.destroy();
+      }
       const ctxType = typeCanvas.getContext('2d');
       typeChartObj = new Chart(ctxType, {
         type: 'bar',
