@@ -135,7 +135,7 @@
           </span>
           <h2 class="text-xl font-bold text-slate-900 mt-2">Submit Imminent Hazard / SOS Assistance Request</h2>
           <p class="text-xs text-slate-500 mt-1 max-w-2xl">
-            Fill in the details below to broadcast an emergency dispatch alert across response agencies.
+            Fill in the information below to broadcast an emergency dispatch alert across all response agencies.
           </p>
         </div>
         <div class="text-right">
@@ -671,9 +671,14 @@
       }).addTo(citizenMap);
 
       citizenMap.on('click', function(e) {
-        document.getElementById('inc-lat').value = e.latlng.lat.toFixed(4);
-        document.getElementById('inc-lng').value = e.latlng.lng.toFixed(4);
-        document.getElementById('gps-status-text').innerText = `Location Pinned: (${e.latlng.lat.toFixed(3)}, ${e.latlng.lng.toFixed(3)})`;
+        if (!e || !e.latlng) return;
+        const lat = Number(e.latlng.lat);
+        const lng = Number(e.latlng.lng);
+        if (isNaN(lat) || isNaN(lng)) return;
+
+        document.getElementById('inc-lat').value = lat.toFixed(4);
+        document.getElementById('inc-lng').value = lng.toFixed(4);
+        document.getElementById('gps-status-text').innerText = `Location Pinned: (${lat.toFixed(3)}, ${lng.toFixed(3)})`;
       });
     }
 
@@ -683,8 +688,10 @@
         gpsLabel.innerText = "Requesting device satellite lock...";
         navigator.geolocation.getCurrentPosition(
           (pos) => {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
+            const lat = Number(pos.coords.latitude);
+            const lng = Number(pos.coords.longitude);
+            if (isNaN(lat) || isNaN(lng)) return;
+
             document.getElementById('inc-lat').value = lat.toFixed(4);
             document.getElementById('inc-lng').value = lng.toFixed(4);
             gpsLabel.innerText = `GPS Acquired: (${lat.toFixed(3)}, ${lng.toFixed(3)})`;
@@ -856,7 +863,7 @@
       document.getElementById('sitrep-notes').value = "";
     }
 
-    // GUARANTEED BULLETPROOF SUBMISSION
+    // ADAPTIVE SUBMISSION: Strictly validates numbers and injects ticket instantly
     async function submitIncident() {
       const titleInput = document.getElementById('inc-title');
       const locInput = document.getElementById('inc-loc-name');
@@ -888,8 +895,9 @@
       if (submitBtn) submitBtn.disabled = true;
       if (submitText) submitText.innerText = "Transmitting to Dispatcher & EOC...";
 
-      const latVal = latInput ? (parseFloat(latInput.value) || 21.1938) : 21.1938;
-      const lngVal = lngInput ? (parseFloat(lngInput.value) || 81.3509) : 81.3509;
+      // Guaranteed numeric coordinates
+      let latVal = latInput && !isNaN(Number(latInput.value)) && latInput.value !== "" ? Number(latInput.value) : 21.1938;
+      let lngVal = lngInput && !isNaN(Number(lngInput.value)) && lngInput.value !== "" ? Number(lngInput.value) : 81.3509;
 
       const newTicket = {
         id: Math.floor(Math.random() * 800) + 110,
@@ -910,7 +918,7 @@
       incidentStore.unshift(newTicket);
       updateAllViews(incidentStore);
 
-      // 2. BROADCAST TO BACKEND (Non-blocking so it never halts the UI)
+      // 2. BROADCAST TO BACKEND ASYNCHRONOUSLY
       try {
         const payload = {
           title: newTicket.title,
@@ -965,11 +973,14 @@
         
         if (Array.isArray(data) && data.length > 0) {
           data.forEach(remoteItem => {
-            // Normalize backend properties if missing
+            // Strictly cast coordinates to numbers
+            const parsedLat = Number(remoteItem.latitude ?? remoteItem.lat ?? remoteItem.location_lat);
+            const parsedLng = Number(remoteItem.longitude ?? remoteItem.lng ?? remoteItem.location_lng);
+
             const normalized = {
               ...remoteItem,
-              latitude: remoteItem.latitude !== undefined ? remoteItem.latitude : (remoteItem.lat !== undefined ? remoteItem.lat : 21.1938),
-              longitude: remoteItem.longitude !== undefined ? remoteItem.longitude : (remoteItem.lng !== undefined ? remoteItem.lng : 81.3509),
+              latitude: !isNaN(parsedLat) ? parsedLat : 21.1938,
+              longitude: !isNaN(parsedLng) ? parsedLng : 81.3509,
               location_name: remoteItem.location_name || remoteItem.location || 'Reported Location',
               severity: remoteItem.severity || 'High',
               disaster_type: remoteItem.disaster_type || 'Flood'
@@ -999,21 +1010,31 @@
       }
     }
 
-    // SAFE MAP RENDERING (Guards against undefined coordinates)
+    // SAFE MAP RENDERING (Guards strictly against undefined or NaN coordinates)
     function renderMapMarkers(incidents) {
       if (!citizenMap) return;
       mapMarkers.forEach(m => citizenMap.removeLayer(m));
       mapMarkers = [];
 
-      incidents.forEach(inc => {
-        const rawLat = inc.latitude !== undefined ? inc.latitude : (inc.lat !== undefined ? inc.lat : 21.1938);
-        const rawLng = inc.longitude !== undefined ? inc.longitude : (inc.lng !== undefined ? inc.lng : 81.3509);
-        
-        const lat = parseFloat(rawLat);
-        const lng = parseFloat(rawLng);
+      if (!Array.isArray(incidents)) return;
 
-        // Guard against NaN or undefined
-        if (isNaN(lat) || isNaN(lng)) return;
+      incidents.forEach(inc => {
+        if (!inc) return;
+
+        let rawLat = inc.latitude !== undefined ? inc.latitude : (inc.lat !== undefined ? inc.lat : inc.location_lat);
+        let rawLng = inc.longitude !== undefined ? inc.longitude : (inc.lng !== undefined ? inc.lng : inc.location_lng);
+
+        // Discard any non-numeric or missing coordinate sets
+        if (rawLat === undefined || rawLat === null || rawLng === undefined || rawLng === null) {
+          return;
+        }
+
+        const lat = Number(rawLat);
+        const lng = Number(rawLng);
+
+        if (isNaN(lat) || isNaN(lng)) {
+          return;
+        }
 
         try {
           const marker = L.circleMarker([lat, lng], {
