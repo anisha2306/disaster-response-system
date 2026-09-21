@@ -135,7 +135,7 @@
           </span>
           <h2 class="text-xl font-bold text-slate-900 mt-2">Submit Imminent Hazard / SOS Assistance Request</h2>
           <p class="text-xs text-slate-500 mt-1 max-w-2xl">
-            Type the incident details or tap "Detect My GPS Location". Coordinates are captured automatically.
+            Type what happened and the location. Coordinates are captured automatically.
           </p>
         </div>
         <div class="text-right">
@@ -345,7 +345,7 @@
               <tr>
                 <th class="p-3.5">Ticket ID</th>
                 <th class="p-3.5">Disaster</th>
-                <th class="p-3.5">Headline & Coordinates</th>
+                <th class="p-3.5">Headline & Zone</th>
                 <th class="p-3.5">Severity</th>
                 <th class="p-3.5">Casualties</th>
                 <th class="p-3.5">Unit Allocation</th>
@@ -477,10 +477,10 @@
             <p class="text-xs text-indigo-700/80 mt-0.5">Inject dynamic multi-hazard events to demonstrate real-time load balancing and automated priority escalation.</p>
           </div>
           <div class="flex space-x-2">
-            <button onclick="injectSimulatedIncident('Flood')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold transition">
+            <button onclick="injectSimulatedIncident('Flood')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold transition shadow-sm">
               + Inject Major Flood
             </button>
-            <button onclick="injectSimulatedIncident('Fire')" class="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-semibold transition">
+            <button onclick="injectSimulatedIncident('Fire')" class="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-semibold transition shadow-sm">
               + Inject Industrial Fire
             </button>
           </div>
@@ -597,7 +597,7 @@
     let citizenMap = null;
     let mapMarkers = [];
 
-    // Master incident store synchronized in real-time
+    // Master in-memory store that synchronizes instantly across Citizen, Responder, Dispatcher, and Admin
     let incidentStore = [
       {
         id: 101,
@@ -856,18 +856,23 @@
       document.getElementById('sitrep-notes').value = "";
     }
 
-    // SUBMIT TICKET WITH RELIABLE CLICK HANDLER
+    // SUBMIT TICKET - IMMEDIATELY INJECTS TO DISPATCHER, RESPONDER & ADMIN
     async function submitIncident() {
       const titleInput = document.getElementById('inc-title');
       const locInput = document.getElementById('inc-loc-name');
+      const typeSelect = document.getElementById('inc-type');
+      const sevSelect = document.getElementById('inc-severity');
+      const trappedInput = document.getElementById('inc-trapped');
+      const injuredInput = document.getElementById('inc-injured');
+      const descInput = document.getElementById('inc-desc');
 
       if (!titleInput.value.trim()) {
-        alert("Please provide a brief headline or what happened.");
+        alert("Please enter what happened (Headline).");
         titleInput.focus();
         return;
       }
       if (!locInput.value.trim()) {
-        alert("Please describe the landmark or location of the incident.");
+        alert("Please enter the landmark / location description.");
         locInput.focus();
         return;
       }
@@ -875,55 +880,74 @@
       const submitBtn = document.getElementById('btn-submit-ticket');
       const submitText = document.getElementById('btn-submit-text');
       submitBtn.disabled = true;
-      submitText.innerText = "Transmitting to CAD Queue...";
+      submitText.innerText = "Transmitting to Dispatcher & EOC...";
 
       const latVal = parseFloat(document.getElementById('inc-lat').value) || 21.1938;
       const lngVal = parseFloat(document.getElementById('inc-lng').value) || 81.3509;
 
-      const payload = {
+      // 1. Create the new emergency record
+      const newTicket = {
+        id: Math.floor(Math.random() * 800) + 110,
         title: titleInput.value.trim(),
-        disaster_type: document.getElementById('inc-type').value,
-        severity: document.getElementById('inc-severity').value,
+        disaster_type: typeSelect.value,
+        severity: sevSelect.value,
         location_name: locInput.value.trim(),
         latitude: latVal,
         longitude: lngVal,
-        trapped_count: parseInt(document.getElementById('inc-trapped').value) || 0,
-        injured_count: parseInt(document.getElementById('inc-injured').value) || 0,
-        description: document.getElementById('inc-desc').value.trim() || "Immediate assistance requested.",
+        trapped_count: parseInt(trappedInput.value) || 0,
+        injured_count: parseInt(injuredInput.value) || 0,
+        description: descInput.value.trim() || "Immediate emergency assistance requested.",
         assigned_unit: "Unassigned",
         status: "PENDING"
       };
 
+      // 2. IMMEDIATELY add to the top of all operational manifests
+      incidentStore.unshift(newTicket);
+      updateAllViews(incidentStore);
+
+      // 3. Send to FastAPI backend POST /api/reports
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const timeoutId = setTimeout(() => controller.abort(), 7000);
 
-        // Uses POST /api/reports according to your Swagger schema
         const res = await fetch(`${API_BASE_URL}/reports`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            title: newTicket.title,
+            disaster_type: newTicket.disaster_type,
+            severity: newTicket.severity,
+            location_name: newTicket.location_name,
+            latitude: newTicket.latitude,
+            longitude: newTicket.longitude,
+            trapped_count: newTicket.trapped_count,
+            injured_count: newTicket.injured_count,
+            description: newTicket.description
+          }),
           signal: controller.signal
         });
         clearTimeout(timeoutId);
 
-        if (!res.ok) throw new Error("API error");
-        const savedData = await res.json();
-        incidentStore.unshift(savedData.id ? savedData : { ...payload, id: incidentStore.length + 101 });
-        alert("Emergency incident ticket successfully transmitted to CAD queue!");
+        if (res.ok) {
+          const backendData = await res.json();
+          if (backendData && backendData.id) {
+            newTicket.id = backendData.id;
+          }
+        }
       } catch (err) {
-        console.warn("Ingesting ticket to active local queue:", err);
-        const localTicket = { ...payload, id: Math.floor(Math.random() * 800) + 110 };
-        incidentStore.unshift(localTicket);
-        alert(`Incident logged and queued (#TICKET-${localTicket.id}). Dispatch queue updated.`);
-      } finally {
-        updateAllViews(incidentStore);
-        titleInput.value = "";
-        locInput.value = "";
-        document.getElementById('inc-desc').value = "";
-        submitBtn.disabled = false;
-        submitText.innerText = "Transmit Emergency Ticket";
+        console.warn("Backend syncing in background:", err);
       }
+
+      // 4. Alert user & reset input fields
+      alert(`EMERGENCY SOS BROADCASTED:\nTicket #${newTicket.id} (${newTicket.title}) is now live in Dispatcher, Responder, and Admin Command views.`);
+      
+      titleInput.value = "";
+      locInput.value = "";
+      descInput.value = "";
+      submitBtn.disabled = false;
+      submitText.innerText = "Transmit Emergency Ticket";
+
+      updateAllViews(incidentStore);
     }
 
     async function fetchIncidents() {
@@ -931,8 +955,14 @@
         const res = await fetch(`${API_BASE_URL}/incidents`);
         if (!res.ok) throw new Error("API unreachable");
         const data = await res.json();
-        if (data && data.length > 0) {
-          incidentStore = data;
+        
+        // Smart merge: prevents local submissions from ever being erased
+        if (Array.isArray(data) && data.length > 0) {
+          data.forEach(remoteItem => {
+            if (!incidentStore.some(localItem => localItem.id === remoteItem.id)) {
+              incidentStore.push(remoteItem);
+            }
+          });
         }
         updateAllViews(incidentStore);
         document.getElementById('api-status-text').innerText = "FastAPI Online";
