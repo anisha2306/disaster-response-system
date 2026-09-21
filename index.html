@@ -15,7 +15,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
     body { font-family: 'Inter', sans-serif; }
     .mono { font-family: 'JetBrains Mono', monospace; }
-    #map { height: 100%; min-height: 480px; width: 100%; z-index: 10; border-radius: 0.75rem; }
+    #map { height: 100%; min-height: 520px; width: 100%; z-index: 10; border-radius: 0.75rem; }
     .pulse-dot {
       animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
@@ -25,107 +25,98 @@
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 flex flex-col min-h-screen">
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen selection:bg-red-100 selection:text-red-700">
 
   <!-- TOP APP NAV -->
-  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
+  <header class="border-b border-slate-200 bg-white/90 backdrop-blur sticky top-0 z-50 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-3">
       <div class="flex items-center space-x-3">
-        <div class="h-10 w-10 bg-red-600/20 border border-red-500 rounded-lg flex items-center justify-center text-red-500 text-xl font-bold">
+        <div class="h-10 w-10 bg-red-50 border border-red-200 rounded-lg flex items-center justify-center text-red-600 text-xl font-bold shadow-sm">
           <i class="fa-solid fa-shield-halved"></i>
         </div>
         <div>
           <div class="flex items-center space-x-2">
-            <h1 class="font-bold text-lg text-white tracking-wide">AegisResponse</h1>
-            <span class="text-xs bg-red-950/80 text-red-400 border border-red-800/60 px-2 py-0.5 rounded font-semibold mono">RBAC V2</span>
+            <h1 class="font-bold text-lg text-slate-900 tracking-tight">AegisResponse</h1>
+            <span class="text-[10px] bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded font-semibold mono">MULTI-AGENCY CAD</span>
           </div>
-          <p class="text-xs text-slate-400">Multi-Agency Disaster Logistics & Geospatial Coordination</p>
+          <p class="text-xs text-slate-500">Tactical Disaster Decision Support & Geospatial Resource Allocation</p>
         </div>
       </div>
 
-      <!-- ROLE BUTTONS -->
+      <!-- ROLE BAR -->
       <div class="flex items-center space-x-3 flex-wrap gap-2">
-        <div class="bg-slate-800/90 border border-slate-700 p-1 rounded-lg flex text-xs">
-          <button onclick="switchRole('citizen')" id="btn-citizen" class="px-3 py-1.5 rounded font-medium bg-red-600 text-white transition">
+        <div class="bg-slate-100 border border-slate-200 p-1 rounded-lg flex text-xs">
+          <button onclick="switchRole('citizen')" id="btn-citizen" class="px-3 py-1.5 rounded-md font-medium bg-red-600 text-white shadow-sm transition">
             <i class="fa-solid fa-bullhorn mr-1.5"></i>Citizen SOS
           </button>
-          <button onclick="switchRole('responder')" id="btn-responder" class="px-3 py-1.5 rounded font-medium text-slate-400 hover:text-white transition">
-            <i class="fa-solid fa-truck-medical mr-1.5"></i>Responder <i class="fa-solid fa-lock text-[10px] ml-1 text-slate-500"></i>
+          <button onclick="switchRole('responder')" id="btn-responder" class="px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">
+            <i class="fa-solid fa-truck-medical mr-1.5"></i>Responder <i class="fa-solid fa-lock text-[10px] ml-1 opacity-40"></i>
           </button>
-          <button onclick="switchRole('dispatcher')" id="btn-dispatcher" class="px-3 py-1.5 rounded font-medium text-slate-400 hover:text-white transition">
-            <i class="fa-solid fa-headset mr-1.5"></i>Dispatcher <i class="fa-solid fa-lock text-[10px] ml-1 text-slate-500"></i>
+          <button onclick="switchRole('dispatcher')" id="btn-dispatcher" class="px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">
+            <i class="fa-solid fa-headset mr-1.5"></i>Dispatcher <i class="fa-solid fa-lock text-[10px] ml-1 opacity-40"></i>
           </button>
-          <button onclick="switchRole('commander')" id="btn-commander" class="px-3 py-1.5 rounded font-medium text-slate-400 hover:text-white transition">
-            <i class="fa-solid fa-sitemap mr-1.5"></i>Admin <i class="fa-solid fa-lock text-[10px] ml-1 text-slate-500"></i>
-          </button>
-        </div>
-
-        <!-- AUTH PROFILE CHIP -->
-        <div id="auth-tag" class="hidden text-xs bg-emerald-950/80 border border-emerald-700 text-emerald-300 px-3 py-1.5 rounded-lg flex items-center space-x-2">
-          <i class="fa-solid fa-id-badge text-emerald-400"></i>
-          <span id="auth-user-label" class="mono text-[11px] font-semibold">BADGE: #----</span>
-          <button onclick="logoutRole()" title="Sign Out" class="text-slate-400 hover:text-red-400 ml-1">
-            <i class="fa-solid fa-right-from-bracket"></i>
+          <button onclick="switchRole('commander')" id="btn-commander" class="px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">
+            <i class="fa-solid fa-sitemap mr-1.5"></i>Admin <i class="fa-solid fa-lock text-[10px] ml-1 opacity-40"></i>
           </button>
         </div>
 
-        <div class="hidden md:flex items-center space-x-2 text-xs mono bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
+        <!-- AUTH CHIP -->
+        <div id="auth-tag" class="hidden text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1.5 rounded-lg flex items-center space-x-2 mono shadow-sm">
+          <i class="fa-solid fa-id-badge text-emerald-600"></i>
+          <span id="auth-user-label" class="text-[11px] font-semibold tracking-wide">ID: ---</span>
+          <button onclick="logoutRole()" title="Sign Out" class="text-slate-400 hover:text-red-600 transition ml-1">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+
+        <div class="hidden md:flex items-center space-x-2 text-xs mono bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
           <span class="inline-block h-2 w-2 rounded-full bg-emerald-500 pulse-dot"></span>
-          <span id="api-status-text" class="text-slate-300">FastAPI Online</span>
+          <span id="api-status-text" class="text-slate-600 font-medium">FastAPI Online</span>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- PERSONNEL AUTH MODAL -->
-  <div id="auth-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-slate-900 border border-slate-700 max-w-sm w-full rounded-xl p-6 shadow-2xl space-y-4">
-      <div class="flex items-center space-x-3 text-red-400">
-        <div class="h-10 w-10 rounded-lg bg-red-950/70 border border-red-800 flex items-center justify-center text-lg">
+  <!-- AUTH MODAL -->
+  <div id="auth-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white border border-slate-200 max-w-sm w-full rounded-2xl p-6 shadow-2xl space-y-4">
+      <div class="flex items-center space-x-3">
+        <div class="h-10 w-10 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600 text-lg shadow-sm">
           <i class="fa-solid fa-shield-halved"></i>
         </div>
         <div>
-          <h3 class="font-bold text-slate-100 text-base">Restricted Operations Gate</h3>
-          <p id="modal-role-title" class="text-xs text-slate-400 uppercase mono">Requires Credentials</p>
+          <h3 class="font-bold text-slate-900 text-base">Restricted Terminal</h3>
+          <p id="modal-role-title" class="text-xs text-slate-500 uppercase tracking-wider mono">Clearance Required</p>
         </div>
       </div>
-      <p class="text-xs text-slate-300 leading-relaxed">
-        RBAC security policy active. Official personnel must authenticate with their registered ID and security key.
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Access to operational dispatch queues and tactical casualty telemetry requires verified personnel credentials.
       </p>
 
-      <div class="space-y-3">
+      <div class="space-y-3 pt-1">
         <div>
-          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Badge ID / Username</label>
-          <input type="text" id="auth-id-input" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 font-mono" placeholder="Enter ID..." />
+          <label class="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">Badge ID / Username</label>
+          <input type="text" id="auth-id-input" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-red-500 font-mono transition" placeholder="e.g. badge ID" />
         </div>
         <div>
-          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Password</label>
+          <label class="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">Passcode</label>
           <div class="relative">
-            <input type="password" id="auth-pw-input" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 font-mono" placeholder="Enter password..." />
-            <button onclick="togglePw()" class="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 text-sm">
+            <input type="password" id="auth-pw-input" onkeydown="if(event.key==='Enter') authenticateRole()" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-red-500 font-mono transition" placeholder="Enter password" />
+            <button onclick="togglePw()" type="button" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 text-sm">
               <i id="toggle-pw-icon" class="fa-solid fa-eye"></i>
             </button>
           </div>
         </div>
-
-        <p id="modal-error-msg" class="text-xs text-rose-400 hidden"><i class="fa-solid fa-circle-exclamation mr-1"></i>Invalid ID or password for this role tier.</p>
-
-        <!-- DEMO ACCESS CHEAT SHEET -->
-        <div class="bg-slate-950/80 border border-slate-800 rounded p-2.5 text-[11px] text-slate-400 space-y-1 font-mono">
-          <div class="text-slate-500 font-bold uppercase text-[10px]">Authorized Credentials:</div>
-          <div><span class="text-amber-400">Responder:</span> ID: <code class="text-slate-200">responder01</code> | Pass: <code class="text-slate-200">resp123</code></div>
-          <div><span class="text-blue-400">Dispatcher:</span> ID: <code class="text-slate-200">dispatch01</code> | Pass: <code class="text-slate-200">disp123</code></div>
-          <div><span class="text-indigo-400">Admin:</span> ID: <code class="text-slate-200">admin01</code> | Pass: <code class="text-slate-200">admin123</code></div>
-        </div>
+        <p id="modal-error-msg" class="text-xs text-rose-600 hidden pt-1"><i class="fa-solid fa-circle-exclamation mr-1"></i>Invalid credentials for selected clearance level.</p>
       </div>
 
       <div class="flex space-x-2 pt-2">
-        <button onclick="closeAuthModal()" class="w-1/2 py-2 text-xs border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-lg font-medium transition">
+        <button onclick="closeAuthModal()" class="w-1/2 py-2 text-xs border border-slate-300 hover:bg-slate-100 text-slate-600 rounded-lg font-medium transition">
           Cancel
         </button>
-        <button onclick="authenticateRole()" class="w-1/2 py-2 text-xs bg-red-600 hover:bg-red-500 text-white rounded-lg font-semibold transition flex items-center justify-center space-x-1.5">
+        <button onclick="authenticateRole()" class="w-1/2 py-2 text-xs bg-red-600 hover:bg-red-500 text-white rounded-lg font-semibold transition flex items-center justify-center space-x-1.5 shadow-sm">
           <i class="fa-solid fa-lock-open"></i>
-          <span>Sign In</span>
+          <span>Authenticate</span>
         </button>
       </div>
     </div>
@@ -136,51 +127,51 @@
 
     <!-- 1. CITIZEN SOS VIEW (OPEN BY DEFAULT) -->
     <div id="view-citizen" class="space-y-6">
-      <div class="bg-gradient-to-r from-red-950/40 via-slate-900 to-slate-900 border border-red-900/50 p-5 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
         <div>
-          <span class="inline-flex items-center space-x-1.5 text-xs text-red-400 font-semibold bg-red-950/80 px-2.5 py-0.5 rounded border border-red-800/80 uppercase tracking-wide">
+          <span class="inline-flex items-center space-x-1.5 text-xs text-red-700 font-semibold bg-red-50 px-2.5 py-0.5 rounded border border-red-200 uppercase tracking-wide">
             <i class="fa-solid fa-satellite-dish"></i>
             <span>Citizen Emergency Broadcast Tier</span>
           </span>
-          <h2 class="text-xl font-bold text-white mt-2">Submit Imminent Hazard / SOS Assistance Request</h2>
-          <p class="text-xs text-slate-400 mt-1 max-w-2xl">
-            Public emergency broadcasts are completely unauthenticated to eliminate latency during life-safety operations.
+          <h2 class="text-xl font-bold text-slate-900 mt-2">Submit Imminent Hazard / SOS Assistance Request</h2>
+          <p class="text-xs text-slate-500 mt-1 max-w-2xl">
+            Public transmissions are frictionless and unauthenticated to guarantee zero latency during emergency life-safety operations.
           </p>
         </div>
         <div class="text-right">
-          <div class="text-xs mono text-slate-400">Public Intake Gateway</div>
-          <div class="text-lg font-bold text-emerald-400 mono">ACTIVE 24/7</div>
+          <div class="text-xs mono text-slate-500">Intake Gateway</div>
+          <div class="text-lg font-bold text-emerald-600 mono">ACTIVE 24/7</div>
         </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- SOS FORM -->
-        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-          <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wider flex items-center space-x-2">
-            <i class="fa-solid fa-triangle-exclamation text-red-500"></i>
+        <div class="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
+          <h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
+            <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
             <span>Emergency Incident Report</span>
           </h3>
 
           <form id="sos-form" onsubmit="submitIncident(event)" class="space-y-4 text-xs">
             <div>
-              <label class="block text-slate-400 font-medium mb-1">Incident Headline / Title *</label>
-              <input type="text" id="inc-title" required placeholder="e.g. Flash Flood Trapped In Residential Zone" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-red-500" />
+              <label class="block text-slate-600 font-medium mb-1">Incident Headline / Title *</label>
+              <input type="text" id="inc-title" required placeholder="e.g. Flash Flood Trapped In Residential Zone" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-red-500 transition" />
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-slate-400 font-medium mb-1">Disaster Category *</label>
-                <select id="inc-type" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-red-500">
+                <label class="block text-slate-600 font-medium mb-1">Disaster Category *</label>
+                <select id="inc-type" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-red-500">
                   <option value="Flood">Flood / Water Surge</option>
                   <option value="Fire">Industrial / Urban Fire</option>
-                  <option value="Earthquake">Earthquake Structural Damage</option>
-                  <option value="Cyclone">Cyclone / Gale Force Winds</option>
-                  <option value="Medical">Mass Medical Emergency</option>
+                  <option value="Earthquake">Earthquake Damage</option>
+                  <option value="Cyclone">Cyclone / Gale Winds</option>
+                  <option value="Medical">Mass Medical Alert</option>
                 </select>
               </div>
               <div>
-                <label class="block text-slate-400 font-medium mb-1">Severity Tier *</label>
-                <select id="inc-severity" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-red-500">
+                <label class="block text-slate-600 font-medium mb-1">Severity Tier *</label>
+                <select id="inc-severity" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-red-500">
                   <option value="Critical">Critical (Immediate Hazard)</option>
                   <option value="High" selected>High (Threat to Life)</option>
                   <option value="Medium">Medium (Disruption)</option>
@@ -190,38 +181,38 @@
             </div>
 
             <div>
-              <label class="block text-slate-400 font-medium mb-1">Location Description / Landmarks *</label>
-              <input type="text" id="inc-loc-name" required placeholder="e.g. Sector 4 Bridge, Riverbank Road" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-red-500" />
+              <label class="block text-slate-600 font-medium mb-1">Location Description / Landmarks *</label>
+              <input type="text" id="inc-loc-name" required placeholder="e.g. Sector 4 Bridge, Riverbank Road" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-red-500 transition" />
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-slate-400 font-medium mb-1">Latitude</label>
-                <input type="number" step="0.0001" id="inc-lat" value="21.1938" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-red-500 mono" />
+                <label class="block text-slate-600 font-medium mb-1">Latitude</label>
+                <input type="number" step="0.0001" id="inc-lat" value="21.1938" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-red-500 mono" />
               </div>
               <div>
-                <label class="block text-slate-400 font-medium mb-1">Longitude</label>
-                <input type="number" step="0.0001" id="inc-lng" value="81.3509" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-red-500 mono" />
+                <label class="block text-slate-600 font-medium mb-1">Longitude</label>
+                <input type="number" step="0.0001" id="inc-lng" value="81.3509" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-red-500 mono" />
               </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-slate-400 font-medium mb-1">People Trapped</label>
-                <input type="number" id="inc-trapped" value="3" min="0" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-red-500" />
+                <label class="block text-slate-600 font-medium mb-1">People Trapped</label>
+                <input type="number" id="inc-trapped" value="3" min="0" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-red-500" />
               </div>
               <div>
-                <label class="block text-slate-400 font-medium mb-1">Injuries Confirmed</label>
-                <input type="number" id="inc-injured" value="1" min="0" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-red-500" />
+                <label class="block text-slate-600 font-medium mb-1">Injuries Confirmed</label>
+                <input type="number" id="inc-injured" value="1" min="0" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-red-500" />
               </div>
             </div>
 
             <div>
-              <label class="block text-slate-400 font-medium mb-1">Detailed Situation Brief</label>
-              <textarea id="inc-desc" rows="3" placeholder="Water levels rising rapidly on lower floors..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-red-500"></textarea>
+              <label class="block text-slate-600 font-medium mb-1">Detailed Situation Brief</label>
+              <textarea id="inc-desc" rows="3" placeholder="Describe hazards, road blockages, trapped victims..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-red-500"></textarea>
             </div>
 
-            <button type="submit" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg transition uppercase tracking-wider text-xs flex items-center justify-center space-x-2">
+            <button type="submit" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition uppercase tracking-wider text-xs flex items-center justify-center space-x-2 shadow-md hover:shadow-lg">
               <i class="fa-solid fa-paper-plane"></i>
               <span>Transmit Emergency Ticket</span>
             </button>
@@ -229,72 +220,77 @@
         </div>
 
         <!-- GIS LEAFLET MAP -->
-        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col">
+        <div class="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-4 flex flex-col shadow-sm">
           <div class="flex items-center justify-between mb-3 px-1">
             <div class="flex items-center space-x-2">
-              <i class="fa-solid fa-map-location-dot text-slate-400"></i>
-              <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Geographic Information Systems (GIS) Tactical Grid</span>
+              <i class="fa-solid fa-map-location-dot text-slate-600"></i>
+              <span class="text-xs font-semibold text-slate-800 uppercase tracking-wider">Tactical Geospatial Grid</span>
             </div>
-            <span class="text-[11px] mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">Live Leaflet.js</span>
+            <span class="text-[11px] mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">Leaflet.js Live</span>
           </div>
-          <div class="flex-1 rounded-lg overflow-hidden border border-slate-800">
+          <div class="flex-1 rounded-xl overflow-hidden border border-slate-200">
             <div id="map"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 2. FIELD RESPONDER VIEW (STRICTLY HIDDEN BY DEFAULT) -->
+    <!-- 2. FIELD RESPONDER VIEW (SECURED) -->
     <div id="view-responder" class="space-y-6 hidden" style="display: none;">
-      <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl flex items-center justify-between flex-wrap gap-3 shadow-sm">
         <div>
-          <span class="text-xs text-amber-400 font-semibold bg-amber-950/80 px-2.5 py-0.5 rounded border border-amber-800/80 uppercase tracking-wide">
-            <i class="fa-solid fa-truck-medical mr-1"></i>Tactical Field Unit Terminal
+          <span class="text-xs text-amber-700 font-semibold bg-amber-50 px-2.5 py-0.5 rounded border border-amber-200 uppercase tracking-wide">
+            <i class="fa-solid fa-truck-medical mr-1.5"></i>Tactical Field Unit Mobile Terminal
           </span>
-          <h2 class="text-xl font-bold text-white mt-1">On-Scene Rescue Operations & Victim Extrication</h2>
+          <h2 class="text-xl font-bold text-slate-900 mt-1">Assigned Ground Rescue Operations</h2>
+          <p class="text-xs text-slate-500 mt-1">Live field incident telemetry routed to deployed search and rescue units.</p>
         </div>
-        <div class="mono text-xs text-amber-400 bg-amber-950/50 border border-amber-800 px-3 py-1.5 rounded">
-          STATUS: ON-DUTY FIELD AGENT
+        <div class="mono text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3.5 py-1.5 rounded-lg flex items-center space-x-2">
+          <span class="h-2 w-2 rounded-full bg-amber-500 pulse-dot"></span>
+          <span>FIELD LINK SYNCHRONIZED</span>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="responder-cards-container"></div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5" id="responder-cards-container">
+        <!-- Dynamically rendered field cards -->
+      </div>
     </div>
 
-    <!-- 3. DISPATCHER VIEW (STRICTLY HIDDEN BY DEFAULT) -->
+    <!-- 3. DISPATCHER VIEW (SECURED) -->
     <div id="view-dispatcher" class="space-y-6 hidden" style="display: none;">
-      <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl flex items-center justify-between flex-wrap gap-3 shadow-sm">
         <div>
-          <span class="text-xs text-blue-400 font-semibold bg-blue-950/80 px-2.5 py-0.5 rounded border border-blue-800/80 uppercase tracking-wide">
-            <i class="fa-solid fa-headset mr-1"></i>Operational Tier: Level 1 Dispatch
+          <span class="text-xs text-blue-700 font-semibold bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200 uppercase tracking-wide">
+            <i class="fa-solid fa-headset mr-1.5"></i>Operational Tier: Level 1 Dispatch
           </span>
-          <h2 class="text-xl font-bold text-white mt-1">Multi-Agency Incident Triage & Allocation Queue</h2>
+          <h2 class="text-xl font-bold text-slate-900 mt-1">Multi-Agency Incident Triage & Allocation Queue</h2>
+          <p class="text-xs text-slate-500 mt-1">Verify citizen tickets, evaluate priority, and assign emergency fleets.</p>
         </div>
-        <button onclick="fetchIncidents()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded mono text-slate-300">
-          <i class="fa-solid fa-arrows-rotate mr-1"></i>Refresh Queue
+        <button onclick="fetchIncidents()" class="text-xs bg-slate-100 hover:bg-slate-200 border border-slate-300 px-3 py-1.5 rounded-lg mono text-slate-700 transition">
+          <i class="fa-solid fa-arrows-rotate mr-1.5"></i>Sync Queue
         </button>
       </div>
 
-      <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-        <div class="p-4 border-b border-slate-800 flex justify-between items-center">
-          <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Active Incident Manifest</h3>
-          <span id="incident-count-badge" class="text-xs mono bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded">0 incidents logged</span>
+      <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+        <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+          <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider">Active Incident Manifest</h3>
+          <span id="incident-count-badge" class="text-xs mono bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-0.5 rounded">0 incidents logged</span>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-950 text-slate-400 uppercase font-mono text-[11px] border-b border-slate-800">
+          <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-100 text-slate-600 uppercase font-mono text-[11px] border-b border-slate-200">
               <tr>
-                <th class="p-3">Ticket ID</th>
-                <th class="p-3">Disaster</th>
-                <th class="p-3">Headline & Coordinates</th>
-                <th class="p-3">Severity</th>
-                <th class="p-3">Casualties</th>
-                <th class="p-3 text-right">Dispatch Action</th>
+                <th class="p-3.5">Ticket ID</th>
+                <th class="p-3.5">Disaster</th>
+                <th class="p-3.5">Headline & Coordinates</th>
+                <th class="p-3.5">Severity</th>
+                <th class="p-3.5">Casualties</th>
+                <th class="p-3.5 text-right">Dispatch Action</th>
               </tr>
             </thead>
-            <tbody id="incidents-table-body" class="divide-y divide-slate-800">
+            <tbody id="incidents-table-body" class="divide-y divide-slate-200">
               <tr>
-                <td colspan="6" class="p-6 text-center text-slate-500 mono">Loading triage pipeline from FastAPI...</td>
+                <td colspan="6" class="p-6 text-center text-slate-400 mono">Loading triage pipeline from FastAPI...</td>
               </tr>
             </tbody>
           </table>
@@ -302,48 +298,55 @@
       </div>
     </div>
 
-    <!-- 4. COMMANDER / ADMIN VIEW (STRICTLY HIDDEN BY DEFAULT) -->
+    <!-- 4. COMMANDER / ADMIN VIEW (SECURED) -->
     <div id="view-commander" class="space-y-6 hidden" style="display: none;">
-      <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl flex items-center justify-between flex-wrap gap-3 shadow-sm">
         <div>
-          <span class="text-xs text-indigo-400 font-semibold bg-indigo-950/80 px-2.5 py-0.5 rounded border border-indigo-800/80 uppercase tracking-wide">
-            <i class="fa-solid fa-sitemap mr-1"></i>Strategic Command: Executive Oversight
+          <span class="text-xs text-indigo-700 font-semibold bg-indigo-50 px-2.5 py-0.5 rounded border border-indigo-200 uppercase tracking-wide">
+            <i class="fa-solid fa-sitemap mr-1.5"></i>Strategic Command: Executive Oversight
           </span>
-          <h2 class="text-xl font-bold text-white mt-1">Resource Utilization & Casualty Severity Metrics</h2>
+          <h2 class="text-xl font-bold text-slate-900 mt-1">Executive Telemetry & Impact Assessment</h2>
+          <p class="text-xs text-slate-500 mt-1">Multi-agency resource mobilization, casualty distribution, and live asset status.</p>
         </div>
-        <div class="text-right mono text-xs text-slate-400">
-          Executive Role: Authenticated
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-          <span class="text-xs text-slate-400 mono">TOTAL INCIDENTS</span>
-          <div id="kpi-total" class="text-2xl font-bold text-white mono mt-1">0</div>
-        </div>
-        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-          <span class="text-xs text-slate-400 mono">CRITICAL TIER</span>
-          <div id="kpi-critical" class="text-2xl font-bold text-red-500 mono mt-1">0</div>
-        </div>
-        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-          <span class="text-xs text-slate-400 mono">PERSONNEL TRAPPED</span>
-          <div id="kpi-trapped" class="text-2xl font-bold text-amber-400 mono mt-1">0</div>
-        </div>
-        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-          <span class="text-xs text-slate-400 mono">FLEET READINESS</span>
-          <div class="text-2xl font-bold text-emerald-400 mono mt-1">94.2%</div>
+        <div class="mono text-xs text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+          CLEARANCE: <span class="text-indigo-600 font-bold">EXECUTIVE DIRECTIVE</span>
         </div>
       </div>
 
+      <!-- KPI METRIC CARDS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+          <span class="text-xs text-slate-500 mono font-semibold">TOTAL INCIDENTS</span>
+          <div id="kpi-total" class="text-3xl font-bold text-slate-900 mono mt-1.5">0</div>
+          <div class="text-[11px] text-slate-400 mt-1">Synchronized with FastAPI DB</div>
+        </div>
+        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+          <span class="text-xs text-slate-500 mono font-semibold">CRITICAL HAZARDS</span>
+          <div id="kpi-critical" class="text-3xl font-bold text-red-600 mono mt-1.5">0</div>
+          <div class="text-[11px] text-red-500 mt-1">Priority dispatch required</div>
+        </div>
+        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+          <span class="text-xs text-slate-500 mono font-semibold">CITIZENS TRAPPED</span>
+          <div id="kpi-trapped" class="text-3xl font-bold text-amber-600 mono mt-1.5">0</div>
+          <div class="text-[11px] text-amber-600 mt-1">Field units mobilized</div>
+        </div>
+        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+          <span class="text-xs text-slate-500 mono font-semibold">DISPATCH READINESS</span>
+          <div class="text-3xl font-bold text-emerald-600 mono mt-1.5">96.8%</div>
+          <div class="text-[11px] text-emerald-600 mt-1">NDRF & Fire Services Active</div>
+        </div>
+      </div>
+
+      <!-- CHARTS -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-          <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-4">Severity Tier Distribution</h3>
+        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+          <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider mb-4">Severity Tier Breakdown</h3>
           <div class="h-64 flex items-center justify-center">
             <canvas id="severityChart"></canvas>
           </div>
         </div>
-        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-          <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-4">Hazard Type Breakdown</h3>
+        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+          <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider mb-4">Incident Category Spectrum</h3>
           <div class="h-64 flex items-center justify-center">
             <canvas id="typeChart"></canvas>
           </div>
@@ -353,8 +356,8 @@
 
   </main>
 
-  <footer class="border-t border-slate-800 py-4 bg-slate-950 text-center text-xs text-slate-500 mono">
-    AegisResponse Decision Support Architecture &bull; Emergency Services Academic Prototype &bull; FastAPI + SQLite + Leaflet.js
+  <footer class="border-t border-slate-200 py-4 bg-white text-center text-xs text-slate-500 mono">
+    AegisResponse Decision Support Architecture &bull; Emergency Response Multi-Agency CAD &bull; FastAPI + Leaflet.js
   </footer>
 
   <script>
@@ -366,8 +369,8 @@
 
     const USER_DATABASE = {
       responder: { id: "responder01", pass: "resp123", badge: "UNIT-704 (NDRF)" },
-      dispatcher: { id: "dispatch01", pass: "disp123", badge: "DISP-OPERATOR #12" },
-      commander:  { id: "admin01",    pass: "admin123", badge: "DIR-ADMIN #01" }
+      dispatcher: { id: "dispatch01", pass: "disp123", badge: "OPERATOR-12" },
+      commander:  { id: "admin01",    pass: "admin123", badge: "DIRECTOR-01" }
     };
 
     let sessionState = {
@@ -414,7 +417,7 @@
       }
 
       pendingRole = role;
-      document.getElementById('modal-role-title').innerText = `Requires ${role.toUpperCase()} Authentication`;
+      document.getElementById('modal-role-title').innerText = `${role.toUpperCase()} Clearance Required`;
       document.getElementById('auth-id-input').value = "";
       document.getElementById('auth-pw-input').value = "";
       document.getElementById('modal-error-msg').classList.add('hidden');
@@ -471,11 +474,11 @@
         const view = document.getElementById(`view-${r}`);
 
         if (r === role) {
-          btn.className = "px-3 py-1.5 rounded font-medium bg-red-600 text-white transition";
+          btn.className = "px-3 py-1.5 rounded-md font-medium bg-red-600 text-white shadow-sm transition";
           view.classList.remove('hidden');
           view.style.display = 'block';
         } else {
-          btn.className = "px-3 py-1.5 rounded font-medium text-slate-400 hover:text-white transition";
+          btn.className = "px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition";
           view.classList.add('hidden');
           view.style.display = 'none';
         }
@@ -552,15 +555,15 @@
       incidents.forEach(inc => {
         const marker = L.circleMarker([inc.latitude, inc.longitude], {
           radius: inc.severity === 'Critical' ? 12 : 8,
-          fillColor: inc.severity === 'Critical' ? '#ef4444' : '#f59e0b',
+          fillColor: inc.severity === 'Critical' ? '#dc2626' : '#f59e0b',
           color: '#ffffff',
-          weight: 1.5,
+          weight: 2,
           opacity: 1,
           fillOpacity: 0.85
         }).addTo(map);
 
         marker.bindPopup(`
-          <div class="p-1 text-slate-900">
+          <div class="p-1 text-slate-800">
             <div class="font-bold">${inc.title}</div>
             <div class="text-xs text-slate-600">${inc.disaster_type} &bull; ${inc.severity}</div>
             <div class="text-xs text-red-600 font-semibold mt-1">Trapped: ${inc.trapped_count} | Injured: ${inc.injured_count}</div>
@@ -574,32 +577,32 @@
       const tbody = document.getElementById('incidents-table-body');
       document.getElementById('incident-count-badge').innerText = `${incidents.length} incidents logged`;
       if (!incidents.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500 mono">No active emergency incidents logged.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 mono">No active emergency incidents logged.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = incidents.map(inc => `
-        <tr class="hover:bg-slate-800/50 transition">
-          <td class="p-3 mono text-slate-400">#${inc.id}</td>
-          <td class="p-3 font-semibold text-white">${inc.disaster_type}</td>
-          <td class="p-3">
-            <div class="font-medium text-slate-200">${inc.title}</div>
-            <div class="text-[11px] text-slate-400 mono">${inc.location_name} (${inc.latitude.toFixed(2)}, ${inc.longitude.toFixed(2)})</div>
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-3.5 mono text-slate-500 font-medium">#${inc.id}</td>
+          <td class="p-3.5 font-semibold text-slate-900">${inc.disaster_type}</td>
+          <td class="p-3.5">
+            <div class="font-medium text-slate-800">${inc.title}</div>
+            <div class="text-[11px] text-slate-500 mono">${inc.location_name} (${inc.latitude.toFixed(2)}, ${inc.longitude.toFixed(2)})</div>
           </td>
-          <td class="p-3">
+          <td class="p-3.5">
             <span class="px-2 py-0.5 rounded text-[11px] font-bold ${
-              inc.severity === 'Critical' ? 'bg-red-950 text-red-400 border border-red-800' :
-              inc.severity === 'High' ? 'bg-amber-950 text-amber-400 border border-amber-800' :
-              'bg-blue-950 text-blue-400 border border-blue-800'
+              inc.severity === 'Critical' ? 'bg-red-50 text-red-700 border border-red-200' :
+              inc.severity === 'High' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+              'bg-blue-50 text-blue-700 border border-blue-200'
             }">${inc.severity}</span>
           </td>
-          <td class="p-3 mono">
-            <span class="text-amber-400">${inc.trapped_count} trapped</span>, 
-            <span class="text-rose-400">${inc.injured_count} inj</span>
+          <td class="p-3.5 mono">
+            <span class="text-amber-700 font-semibold">${inc.trapped_count} trapped</span>, 
+            <span class="text-red-700 font-semibold">${inc.injured_count} inj</span>
           </td>
-          <td class="p-3 text-right">
-            <button onclick="alert('Ticket #${inc.id} assigned to Field Responder Unit (NDRF)')" class="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-600/40 rounded text-xs transition">
-              Dispatch
+          <td class="p-3.5 text-right">
+            <button onclick="alert('Ticket #${inc.id} assigned to Field Responder Unit (NDRF)')" class="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold transition shadow-sm">
+              Dispatch Unit
             </button>
           </td>
         </tr>
@@ -609,27 +612,44 @@
     function renderResponderCards() {
       const container = document.getElementById('responder-cards-container');
       if (!incidentStore.length) {
-        container.innerHTML = `<div class="col-span-3 text-center text-slate-500 py-12 mono">No active field assignments on record.</div>`;
+        container.innerHTML = `
+          <div class="col-span-3 text-center text-slate-400 py-16 bg-white border border-slate-200 rounded-2xl mono shadow-sm">
+            <i class="fa-solid fa-clipboard-check text-2xl mb-2 text-slate-400 block"></i>
+            No active field emergency tickets assigned to this unit.
+          </div>
+        `;
         return;
       }
 
       container.innerHTML = incidentStore.map(inc => `
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between space-y-3">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:shadow-md transition shadow-sm">
           <div>
-            <div class="flex justify-between items-center mb-1">
-              <span class="text-[11px] font-bold mono ${inc.severity === 'Critical' ? 'text-red-400' : 'text-amber-400'}">${inc.severity} TIER</span>
-              <span class="text-xs text-slate-500 mono">#TICKET-${inc.id}</span>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded mono ${
+                inc.severity === 'Critical' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+              }">${inc.severity} ALERT</span>
+              <span class="text-xs text-slate-500 mono font-medium">#TICKET-${inc.id}</span>
             </div>
-            <h4 class="font-bold text-white text-sm">${inc.title}</h4>
-            <p class="text-xs text-slate-400 mt-1">${inc.location_name}</p>
-            <div class="mt-2 text-xs mono text-slate-300 bg-slate-950 p-2 rounded border border-slate-800/80">
-              Trapped: <span class="text-amber-400 font-bold">${inc.trapped_count}</span> | Injured: <span class="text-rose-400 font-bold">${inc.injured_count}</span>
+            <h4 class="font-bold text-slate-900 text-base">${inc.title}</h4>
+            <p class="text-xs text-slate-500 mt-1 flex items-center">
+              <i class="fa-solid fa-location-dot mr-1.5 text-red-600"></i> ${inc.location_name}
+            </p>
+            <div class="mt-3 text-xs mono text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex justify-between">
+              <span>Trapped: <strong class="text-amber-700">${inc.trapped_count}</strong></span>
+              <span>Injured: <strong class="text-red-700">${inc.injured_count}</strong></span>
+              <span>Type: <strong class="text-slate-800">${inc.disaster_type}</strong></span>
             </div>
           </div>
-          <button onclick="alert('Unit #704 status acknowledged for Ticket #${inc.id}')" class="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded text-xs transition flex items-center justify-center space-x-1">
-            <i class="fa-solid fa-location-crosshairs"></i>
-            <span>Confirm On-Scene En Route</span>
-          </button>
+          <div class="flex space-x-2 pt-2">
+            <button onclick="alert('Unit #704 status acknowledged: EN ROUTE to Ticket #${inc.id}')" class="w-1/2 py-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-lg text-xs transition flex items-center justify-center space-x-1.5 shadow-sm">
+              <i class="fa-solid fa-truck-fast"></i>
+              <span>En Route</span>
+            </button>
+            <button onclick="alert('Ticket #${inc.id} marked as RESOLVED on scene.')" class="w-1/2 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-semibold rounded-lg text-xs transition flex items-center justify-center space-x-1.5 shadow-sm">
+              <i class="fa-solid fa-check"></i>
+              <span>Resolve</span>
+            </button>
+          </div>
         </div>
       `).join('');
     }
@@ -658,10 +678,20 @@
           labels: Object.keys(sevCounts),
           datasets: [{
             data: Object.values(sevCounts),
-            backgroundColor: ['#ef4444', '#f97316', '#3b82f6', '#10b981']
+            backgroundColor: ['#ef4444', '#f97316', '#3b82f6', '#10b981'],
+            borderWidth: 0
           }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8' } } } }
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#475569', font: { family: 'Inter', size: 11 }, padding: 14 }
+            }
+          }
+        }
       });
 
       if (typeChartObj) typeChartObj.destroy();
@@ -673,7 +703,8 @@
           datasets: [{
             label: 'Incidents',
             data: Object.values(typeCounts),
-            backgroundColor: '#6366f1'
+            backgroundColor: '#4f46e5',
+            borderRadius: 6
           }]
         },
         options: {
@@ -681,8 +712,8 @@
           maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { ticks: { color: '#94a3b8' } },
-            y: { ticks: { color: '#94a3b8', stepSize: 1 } }
+            x: { ticks: { color: '#64748b', font: { family: 'Inter', size: 11 } }, grid: { display: false } },
+            y: { ticks: { color: '#64748b', stepSize: 1, font: { family: 'Inter', size: 11 } }, grid: { color: '#f1f5f9' } }
           }
         }
       });
