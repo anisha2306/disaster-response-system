@@ -1,5 +1,3 @@
-cd ~/disaster_project
-cat << 'EOF' > index.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,13 +37,13 @@ cat << 'EOF' > index.html
         <div>
           <div class="flex items-center space-x-2">
             <h1 class="font-bold text-lg text-white tracking-wide">AegisResponse</h1>
-            <span class="text-xs bg-red-950/80 text-red-400 border border-red-800/60 px-2 py-0.5 rounded font-semibold mono">RBAC ENABLED</span>
+            <span class="text-xs bg-red-950/80 text-red-400 border border-red-800/60 px-2 py-0.5 rounded font-semibold mono">RBAC V2</span>
           </div>
           <p class="text-xs text-slate-400">Multi-Agency Disaster Logistics & Geospatial Coordination</p>
         </div>
       </div>
 
-      <!-- ROLE BUTTONS & AUTH BADGE -->
+      <!-- ROLE BUTTONS -->
       <div class="flex items-center space-x-3 flex-wrap gap-2">
         <div class="bg-slate-800/90 border border-slate-700 p-1 rounded-lg flex text-xs">
           <button onclick="switchRole('citizen')" id="btn-citizen" class="px-3 py-1.5 rounded font-medium bg-red-600 text-white transition">
@@ -79,31 +77,31 @@ cat << 'EOF' > index.html
     </div>
   </header>
 
-  <!-- PERSONNEL AUTHENTICATION MODAL (ID + PASSWORD) -->
-  <div id="auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+  <!-- PERSONNEL AUTH MODAL -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-slate-900 border border-slate-700 max-w-sm w-full rounded-xl p-6 shadow-2xl space-y-4">
       <div class="flex items-center space-x-3 text-red-400">
         <div class="h-10 w-10 rounded-lg bg-red-950/70 border border-red-800 flex items-center justify-center text-lg">
           <i class="fa-solid fa-shield-halved"></i>
         </div>
         <div>
-          <h3 class="font-bold text-slate-100 text-base">Personnel Access Gate</h3>
+          <h3 class="font-bold text-slate-100 text-base">Restricted Operations Gate</h3>
           <p id="modal-role-title" class="text-xs text-slate-400 uppercase mono">Requires Credentials</p>
         </div>
       </div>
       <p class="text-xs text-slate-300 leading-relaxed">
-        Role-Based Access Control (RBAC) active. Official personnel must supply their registered Badge ID and security password.
+        RBAC security policy active. Official personnel must authenticate with their registered ID and security key.
       </p>
 
       <div class="space-y-3">
         <div>
           <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Badge ID / Username</label>
-          <input type="text" id="auth-id-input" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 font-mono" placeholder="e.g. responder01, dispatch01, admin01" />
+          <input type="text" id="auth-id-input" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 font-mono" placeholder="Enter ID..." />
         </div>
         <div>
           <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Password</label>
           <div class="relative">
-            <input type="password" id="auth-pw-input" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 font-mono" placeholder="Enter password" />
+            <input type="password" id="auth-pw-input" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 font-mono" placeholder="Enter password..." />
             <button onclick="togglePw()" class="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 text-sm">
               <i id="toggle-pw-icon" class="fa-solid fa-eye"></i>
             </button>
@@ -112,9 +110,9 @@ cat << 'EOF' > index.html
 
         <p id="modal-error-msg" class="text-xs text-rose-400 hidden"><i class="fa-solid fa-circle-exclamation mr-1"></i>Invalid ID or password for this role tier.</p>
 
-        <!-- DEMO CHEAT SHEET FOR PRESENTATION -->
-        <div class="bg-slate-950/70 border border-slate-800 rounded p-2.5 text-[11px] text-slate-400 space-y-1 font-mono">
-          <div class="text-slate-500 font-bold uppercase text-[10px]">Verified Credentials:</div>
+        <!-- DEMO ACCESS CHEAT SHEET -->
+        <div class="bg-slate-950/80 border border-slate-800 rounded p-2.5 text-[11px] text-slate-400 space-y-1 font-mono">
+          <div class="text-slate-500 font-bold uppercase text-[10px]">Authorized Credentials:</div>
           <div><span class="text-amber-400">Responder:</span> ID: <code class="text-slate-200">responder01</code> | Pass: <code class="text-slate-200">resp123</code></div>
           <div><span class="text-blue-400">Dispatcher:</span> ID: <code class="text-slate-200">dispatch01</code> | Pass: <code class="text-slate-200">disp123</code></div>
           <div><span class="text-indigo-400">Admin:</span> ID: <code class="text-slate-200">admin01</code> | Pass: <code class="text-slate-200">admin123</code></div>
@@ -133,10 +131,10 @@ cat << 'EOF' > index.html
     </div>
   </div>
 
-  <!-- MAIN CONTAINER -->
+  <!-- MAIN VIEWPORT -->
   <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
 
-    <!-- 1. CITIZEN SOS VIEW (ZERO-FRICTION / NO LOGIN NEEDED) -->
+    <!-- 1. CITIZEN SOS VIEW (OPEN BY DEFAULT) -->
     <div id="view-citizen" class="space-y-6">
       <div class="bg-gradient-to-r from-red-950/40 via-slate-900 to-slate-900 border border-red-900/50 p-5 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
@@ -246,8 +244,8 @@ cat << 'EOF' > index.html
       </div>
     </div>
 
-    <!-- 2. FIELD RESPONDER VIEW (SECURED) -->
-    <div id="view-responder" class="space-y-6 hidden">
+    <!-- 2. FIELD RESPONDER VIEW (STRICTLY HIDDEN) -->
+    <div id="view-responder" class="space-y-6 hidden" style="display: none;">
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
         <div>
           <span class="text-xs text-amber-400 font-semibold bg-amber-950/80 px-2.5 py-0.5 rounded border border-amber-800/80 uppercase tracking-wide">
@@ -265,8 +263,8 @@ cat << 'EOF' > index.html
       </div>
     </div>
 
-    <!-- 3. DISPATCHER VIEW (SECURED) -->
-    <div id="view-dispatcher" class="space-y-6 hidden">
+    <!-- 3. DISPATCHER VIEW (STRICTLY HIDDEN) -->
+    <div id="view-dispatcher" class="space-y-6 hidden" style="display: none;">
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
         <div>
           <span class="text-xs text-blue-400 font-semibold bg-blue-950/80 px-2.5 py-0.5 rounded border border-blue-800/80 uppercase tracking-wide">
@@ -306,8 +304,8 @@ cat << 'EOF' > index.html
       </div>
     </div>
 
-    <!-- 4. COMMANDER / ADMIN VIEW (SECURED) -->
-    <div id="view-commander" class="space-y-6 hidden">
+    <!-- 4. COMMANDER / ADMIN VIEW (STRICTLY HIDDEN) -->
+    <div id="view-commander" class="space-y-6 hidden" style="display: none;">
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
         <div>
           <span class="text-xs text-indigo-400 font-semibold bg-indigo-950/80 px-2.5 py-0.5 rounded border border-indigo-800/80 uppercase tracking-wide">
@@ -370,7 +368,6 @@ cat << 'EOF' > index.html
     let pendingRole = null;
     let loggedInOfficer = null;
 
-    // CREDENTIAL DATABASE (ID + PASSWORD MATRIX)
     const USER_DATABASE = {
       responder: { id: "responder01", pass: "resp123", badge: "UNIT-704 (NDRF)" },
       dispatcher: { id: "dispatch01", pass: "disp123", badge: "DISP-OPERATOR #12" },
@@ -390,6 +387,8 @@ cat << 'EOF' > index.html
     let typeChartObj = null;
 
     window.addEventListener("DOMContentLoaded", () => {
+      // Force initial view state strictly to Citizen SOS
+      activateRole('citizen');
       initMap();
       fetchIncidents();
       setInterval(fetchIncidents, 20000);
@@ -408,19 +407,19 @@ cat << 'EOF' > index.html
       });
     }
 
-    // ROLE SWITCH GATEWAY
     function switchRole(role) {
       if (role === 'citizen') {
         activateRole('citizen');
         return;
       }
 
+      // Check if session exists
       if (sessionState[role]) {
         activateRole(role);
         return;
       }
 
-      // Trigger Auth Modal
+      // Trigger modal
       pendingRole = role;
       document.getElementById('modal-role-title').innerText = `Requires ${role.toUpperCase()} Authentication`;
       document.getElementById('auth-id-input').value = "";
@@ -473,15 +472,19 @@ cat << 'EOF' > index.html
     function activateRole(role) {
       currentRole = role;
 
-      ['citizen', 'responder', 'dispatcher', 'commander'].forEach(r => {
+      const roles = ['citizen', 'responder', 'dispatcher', 'commander'];
+      roles.forEach(r => {
         const btn = document.getElementById(`btn-${r}`);
         const view = document.getElementById(`view-${r}`);
+
         if (r === role) {
           btn.className = "px-3 py-1.5 rounded font-medium bg-red-600 text-white transition";
           view.classList.remove('hidden');
+          view.style.display = 'block';
         } else {
           btn.className = "px-3 py-1.5 rounded font-medium text-slate-400 hover:text-white transition";
           view.classList.add('hidden');
+          view.style.display = 'none';
         }
       });
 
@@ -694,4 +697,3 @@ cat << 'EOF' > index.html
   </script>
 </body>
 </html>
-EOF
