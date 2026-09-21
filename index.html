@@ -244,7 +244,7 @@
       </div>
     </div>
 
-    <!-- 2. FIELD RESPONDER VIEW (STRICTLY HIDDEN) -->
+    <!-- 2. FIELD RESPONDER VIEW (STRICTLY HIDDEN BY DEFAULT) -->
     <div id="view-responder" class="space-y-6 hidden" style="display: none;">
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
         <div>
@@ -258,12 +258,10 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="responder-cards-container">
-        <!-- Dynamically injected active rescue cards -->
-      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="responder-cards-container"></div>
     </div>
 
-    <!-- 3. DISPATCHER VIEW (STRICTLY HIDDEN) -->
+    <!-- 3. DISPATCHER VIEW (STRICTLY HIDDEN BY DEFAULT) -->
     <div id="view-dispatcher" class="space-y-6 hidden" style="display: none;">
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
         <div>
@@ -304,7 +302,7 @@
       </div>
     </div>
 
-    <!-- 4. COMMANDER / ADMIN VIEW (STRICTLY HIDDEN) -->
+    <!-- 4. COMMANDER / ADMIN VIEW (STRICTLY HIDDEN BY DEFAULT) -->
     <div id="view-commander" class="space-y-6 hidden" style="display: none;">
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
         <div>
@@ -318,7 +316,6 @@
         </div>
       </div>
 
-      <!-- KPI METRIC CARDS -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
           <span class="text-xs text-slate-400 mono">TOTAL INCIDENTS</span>
@@ -338,7 +335,6 @@
         </div>
       </div>
 
-      <!-- CHARTS -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
           <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-4">Severity Tier Distribution</h3>
@@ -387,7 +383,6 @@
     let typeChartObj = null;
 
     window.addEventListener("DOMContentLoaded", () => {
-      // Force initial view state strictly to Citizen SOS
       activateRole('citizen');
       initMap();
       fetchIncidents();
@@ -413,13 +408,11 @@
         return;
       }
 
-      // Check if session exists
       if (sessionState[role]) {
         activateRole(role);
         return;
       }
 
-      // Trigger modal
       pendingRole = role;
       document.getElementById('modal-role-title').innerText = `Requires ${role.toUpperCase()} Authentication`;
       document.getElementById('auth-id-input').value = "";
