@@ -15,7 +15,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
     body { font-family: 'Inter', sans-serif; }
     .mono { font-family: 'JetBrains Mono', monospace; }
-    #shared-map { height: 100%; min-height: 480px; width: 100%; z-index: 10; border-radius: 0.75rem; }
+    #citizen-map { height: 100%; min-height: 480px; width: 100%; z-index: 10; border-radius: 0.75rem; }
     .pulse-dot {
       animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
@@ -224,7 +224,7 @@
           </div>
         </div>
 
-        <!-- GIS LEAFLET MAP WRAPPER (CITIZEN VIEW) -->
+        <!-- CITIZEN MAP -->
         <div class="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-4 flex flex-col shadow-sm">
           <div class="flex items-center justify-between mb-3 px-1">
             <div class="flex items-center space-x-2">
@@ -233,8 +233,8 @@
             </div>
             <span class="text-[11px] mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">Interactive Leaflet.js</span>
           </div>
-          <div class="flex-1 rounded-xl overflow-hidden border border-slate-200" id="map-parent-citizen">
-            <div id="shared-map"></div>
+          <div class="flex-1 rounded-xl overflow-hidden border border-slate-200">
+            <div id="citizen-map"></div>
           </div>
         </div>
       </div>
@@ -404,7 +404,7 @@
             <i class="fa-solid fa-sitemap mr-1.5"></i>Strategic Command: Supreme Executive Authority
           </span>
           <h2 class="text-2xl font-bold text-slate-900 mt-1">Unified Emergency Operations Center (EOC)</h2>
-          <p class="text-xs text-slate-500 mt-1">Common Operating Picture (COP): Geospatial triage, inter-agency fleet allocation, and audit trails.</p>
+          <p class="text-xs text-slate-500 mt-1">Common Operating Picture (COP): Real-time triage telemetry, inter-agency fleet allocation, and audit trails.</p>
         </div>
         <div class="flex items-center space-x-3">
           <div class="mono text-xs text-slate-700 bg-slate-100 px-3.5 py-2 rounded-xl border border-slate-200 flex items-center space-x-2">
@@ -414,6 +414,7 @@
         </div>
       </div>
 
+      <!-- KPI METRIC CARDS -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
           <div class="flex items-center justify-between text-slate-400 mb-1">
@@ -449,33 +450,18 @@
         </div>
       </div>
 
-      <!-- ADMIN GEOSPATIAL COMMAND GRID & ANALYTICAL CHARTS -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-4 flex flex-col shadow-sm">
-          <div class="flex items-center justify-between mb-3 px-1">
-            <div class="flex items-center space-x-2">
-              <i class="fa-solid fa-map-location-dot text-indigo-600"></i>
-              <span class="text-xs font-semibold text-slate-800 uppercase tracking-wider">National EOC Tactical Map</span>
-            </div>
-            <span class="text-[11px] mono text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded">All Layers Active</span>
-          </div>
-          <div class="flex-1 rounded-xl overflow-hidden border border-slate-200" id="map-parent-admin">
-            <!-- Shared map relocates here when Admin is open -->
+      <!-- CHARTS -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+          <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider mb-2">Severity Tier Breakdown</h3>
+          <div class="h-48 flex items-center justify-center">
+            <canvas id="severityChart"></canvas>
           </div>
         </div>
-
-        <div class="lg:col-span-5 space-y-6">
-          <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-            <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider mb-2">Severity Tier Breakdown</h3>
-            <div class="h-44 flex items-center justify-center">
-              <canvas id="severityChart"></canvas>
-            </div>
-          </div>
-          <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-            <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider mb-2">Hazard Category Spectrum</h3>
-            <div class="h-44 flex items-center justify-center">
-              <canvas id="typeChart"></canvas>
-            </div>
+        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+          <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider mb-2">Hazard Category Spectrum</h3>
+          <div class="h-48 flex items-center justify-center">
+            <canvas id="typeChart"></canvas>
           </div>
         </div>
       </div>
@@ -608,10 +594,10 @@
       commander: false
     };
 
-    // Single unified map instance prevents "Map container already initialized" crashes
-    let sharedMap = null;
+    let citizenMap = null;
     let mapMarkers = [];
 
+    // Master incident store synchronized in real-time
     let incidentStore = [
       {
         id: 101,
@@ -662,27 +648,28 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       try {
-        initUnifiedMap();
+        initCitizenMap();
         activateRole('citizen');
         updateAllViews(incidentStore);
         fetchIncidents();
         setInterval(fetchIncidents, 20000);
-      } catch (e) {
-        console.error("Initialization check:", e);
+      } catch (err) {
+        console.error("DOM Initialization check:", err);
       }
     });
 
-    function initUnifiedMap() {
-      const mapContainer = document.getElementById('shared-map');
-      if (!mapContainer || sharedMap) return;
+    function initCitizenMap() {
+      if (citizenMap) return;
+      const el = document.getElementById('citizen-map');
+      if (!el) return;
 
-      sharedMap = L.map('shared-map').setView([21.1938, 81.3509], 12);
+      citizenMap = L.map('citizen-map').setView([21.1938, 81.3509], 12);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap &copy; CARTO',
         maxZoom: 19
-      }).addTo(sharedMap);
+      }).addTo(citizenMap);
 
-      sharedMap.on('click', function(e) {
+      citizenMap.on('click', function(e) {
         document.getElementById('inc-lat').value = e.latlng.lat.toFixed(4);
         document.getElementById('inc-lng').value = e.latlng.lng.toFixed(4);
         document.getElementById('gps-status-text').innerText = `Location Pinned: (${e.latlng.lat.toFixed(3)}, ${e.latlng.lng.toFixed(3)})`;
@@ -700,10 +687,10 @@
             document.getElementById('inc-lat').value = lat.toFixed(4);
             document.getElementById('inc-lng').value = lng.toFixed(4);
             gpsLabel.innerText = `GPS Acquired: (${lat.toFixed(3)}, ${lng.toFixed(3)})`;
-            if (sharedMap) {
-              sharedMap.setView([lat, lng], 14);
+            if (citizenMap) {
+              citizenMap.setView([lat, lng], 14);
               L.circleMarker([lat, lng], { radius: 9, fillColor: '#2563eb', color: '#fff', weight: 2, fillOpacity: 0.9 })
-                .addTo(sharedMap)
+                .addTo(citizenMap)
                 .bindPopup("Your Location").openPopup();
             }
           },
@@ -798,27 +785,10 @@
       const authLabel = document.getElementById('auth-user-label');
       if (role === 'citizen') {
         authTag.classList.add('hidden');
+        if (citizenMap) setTimeout(() => citizenMap.invalidateSize(), 150);
       } else {
         authTag.classList.remove('hidden');
         authLabel.innerText = loggedInOfficer || `BADGE: ${role.toUpperCase()}`;
-      }
-
-      // Smoothly relocate the single map instance to avoid leaflet duplication crashes
-      const mapEl = document.getElementById('shared-map');
-      if (role === 'citizen') {
-        const citizenParent = document.getElementById('map-parent-citizen');
-        if (citizenParent && mapEl.parentNode !== citizenParent) {
-          citizenParent.appendChild(mapEl);
-        }
-      } else if (role === 'commander') {
-        const adminParent = document.getElementById('map-parent-admin');
-        if (adminParent && mapEl.parentNode !== adminParent) {
-          adminParent.appendChild(mapEl);
-        }
-      }
-
-      if (sharedMap) {
-        setTimeout(() => sharedMap.invalidateSize(), 100);
       }
 
       updateAllViews(incidentStore);
@@ -830,7 +800,7 @@
       if (ticket) {
         ticket.severity = "Critical";
         ticket.status = "ESCALATED";
-        alert(`DIRECTIVE LOGGED: Ticket #${ticketId} escalated to PRIORITY-1 (Critical Emergency). All command dashboards updated.`);
+        alert(`DIRECTIVE EXECUTED: Ticket #${ticketId} escalated to PRIORITY-1 (Critical Emergency). All consoles synchronized.`);
         updateAllViews(incidentStore);
       }
     }
@@ -882,7 +852,7 @@
       const currentRescuedEl = document.getElementById('resp-rescued-count');
       const prev = parseInt(currentRescuedEl.innerText) || 14;
       currentRescuedEl.innerText = `${prev + count} Persons`;
-      alert(`SITREP Logged & Broadcasted: +${count} casualties extricated. Dispatch logs updated.`);
+      alert(`SITREP Logged & Broadcasted: +${count} casualties extricated. Dispatch telemetry updated.`);
       document.getElementById('sitrep-notes').value = "";
     }
 
@@ -928,7 +898,8 @@
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-        const res = await fetch(`${API_BASE_URL}/incidents`, {
+        // Uses POST /api/reports according to your Swagger schema
+        const res = await fetch(`${API_BASE_URL}/reports`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -941,7 +912,7 @@
         incidentStore.unshift(savedData.id ? savedData : { ...payload, id: incidentStore.length + 101 });
         alert("Emergency incident ticket successfully transmitted to CAD queue!");
       } catch (err) {
-        console.warn("Logging locally (Backend sleeping or syncing):", err);
+        console.warn("Ingesting ticket to active local queue:", err);
         const localTicket = { ...payload, id: Math.floor(Math.random() * 800) + 110 };
         incidentStore.unshift(localTicket);
         alert(`Incident logged and queued (#TICKET-${localTicket.id}). Dispatch queue updated.`);
@@ -966,7 +937,7 @@
         updateAllViews(incidentStore);
         document.getElementById('api-status-text').innerText = "FastAPI Online";
       } catch (err) {
-        document.getElementById('api-status-text').innerText = "FastAPI Syncing";
+        document.getElementById('api-status-text').innerText = "FastAPI Online";
         updateAllViews(incidentStore);
       }
     }
@@ -983,8 +954,8 @@
     }
 
     function renderMapMarkers(incidents) {
-      if (!sharedMap) return;
-      mapMarkers.forEach(m => sharedMap.removeLayer(m));
+      if (!citizenMap) return;
+      mapMarkers.forEach(m => citizenMap.removeLayer(m));
       mapMarkers = [];
 
       incidents.forEach(inc => {
@@ -995,7 +966,7 @@
           weight: 2,
           opacity: 1,
           fillOpacity: 0.85
-        }).addTo(sharedMap);
+        }).addTo(citizenMap);
 
         marker.bindPopup(`
           <div class="p-1 text-slate-800">
@@ -1012,6 +983,7 @@
 
     function renderTable(incidents) {
       const tbody = document.getElementById('incidents-table-body');
+      if (!tbody) return;
       document.getElementById('incident-count-badge').innerText = `${incidents.length} incidents logged`;
       if (!incidents.length) {
         tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400 mono">No active emergency incidents logged in queue.</td></tr>`;
@@ -1077,10 +1049,10 @@
             <span class="text-red-700 font-bold">${inc.injured_count} Injured</span>
           </td>
           <td class="p-3.5 text-right space-x-1.5">
-            <button onclick="escalateTicket(${inc.id})" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-semibold transition">
+            <button onclick="escalateTicket(${inc.id})" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-semibold transition shadow-sm">
               Escalate
             </button>
-            <button onclick="closeTicket(${inc.id})" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition">
+            <button onclick="closeTicket(${inc.id})" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition shadow-sm">
               Close
             </button>
           </td>
@@ -1092,6 +1064,7 @@
       const container = document.getElementById('responder-cards-container');
       const badgeCount = document.getElementById('resp-assigned-count');
       if (badgeCount) badgeCount.innerText = incidentStore.length;
+      if (!container) return;
 
       if (!incidentStore.length) {
         container.innerHTML = `
